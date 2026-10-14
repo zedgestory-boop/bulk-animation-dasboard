@@ -174,14 +174,31 @@ app.post('/api/scan-rbxm', (req, res) => {
 function getCreator(overrideType, overrideId) {
   const oType = String(overrideType || '').trim().toLowerCase();
   const oId = String(overrideId || '').trim();
-  if (oType === 'group' && oId) return { creator: { groupId: oId } };
-  if (oType === 'user' && oId) return { creator: { userId: oId } };
+
+  // An explicit target must be complete and valid. Never silently fall back
+  // to the Railway default when a user selected personal/group ownership.
+  if (oType === 'group' || oType === 'user') {
+    if (!/^\\d{1,20}$/.test(oId)) {
+      throw new Error(oType === 'user'
+        ? 'Masukkan User ID numerik akun pribadi yang valid.'
+        : 'Masukkan Group ID numerik grup Roblox yang valid.');
+    }
+    return oType === 'group'
+      ? { creator: { groupId: oId } }
+      : { creator: { userId: oId } };
+  }
+  if (oType && oType !== 'env') {
+    throw new Error('Tipe creator tidak valid. Pilih akun pribadi, grup, atau target default Railway.');
+  }
 
   const groupId = String(process.env.ROBLOX_GROUP_ID || '').trim();
   const userId = String(process.env.ROBLOX_USER_ID || '').trim();
-  if (groupId) return { creator: { groupId } };
-  if (userId) return { creator: { userId } };
-  throw new Error('Isi ROBLOX_USER_ID atau ROBLOX_GROUP_ID di Railway Variables (.env) atau tentukan di panel.');
+  if (groupId && /^\\d{1,20}$/.test(groupId)) return { creator: { groupId } };
+  if (userId && /^\\d{1,20}$/.test(userId)) return { creator: { userId } };
+  if (groupId || userId) {
+    throw new Error('ROBLOX_GROUP_ID atau ROBLOX_USER_ID harus berisi ID numerik yang valid.');
+  }
+  throw new Error('Isi ROBLOX_USER_ID atau ROBLOX_GROUP_ID di Railway Variables, atau pilih target creator di panel.');
 }
 
 async function readRobloxResponse(response) {
