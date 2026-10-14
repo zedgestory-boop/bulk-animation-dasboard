@@ -572,7 +572,7 @@ button:disabled {
   <div class="railway-info">
     <span class="railway-status-tag" id="railwayStatusTag">Status</span>
     <div class="railway-details">
-      <div><strong>Target Grup Roblox:</strong> <span id="railwayTargetText">Memuat target...</span></div>
+      <div><strong>Target Creator Roblox:</strong> <span id="railwayTargetText">Memuat target...</span></div>
       <div id="railwaySubText" style="font-size:12px;color:var(--muted)">Pemeriksaan koneksi otomatis ke Roblox Open Cloud.</div>
     </div>
   </div>
@@ -585,7 +585,7 @@ button:disabled {
 <!-- Creator Override Box (collapsible) -->
 <div id="creatorOverrideBox" class="panel" style="display:none;margin-bottom:18px;border-color:var(--blue)">
   <h2>Atur Target Creator (Override)</h2>
-  <p class="sub">Tentukan Group ID tempat animasi milik sendiri atau berlisensi akan diunggah.</p>
+  <p class="sub">Pilih akun pribadi atau grup sebagai pemilik aset baru. Gunakan ID numerik yang sesuai.</p>
   <div class="grid" style="margin-top:10px">
     <div>
       <label for="overrideType">Tipe Creator</label>
@@ -918,7 +918,7 @@ ROBLOX_GROUP_ID=9876543</div>
       const targetText = $('railwayTargetText');
       const subText = $('railwaySubText');
 
-      if (customCreatorType !== 'env' && customCreatorId) {
+      if (customCreatorType !== 'env') {
         targetText.textContent = `${customCreatorType.toUpperCase()}: ${customCreatorId} (Kustom Override)`;
       } else if (data.creatorType !== 'none') {
         targetText.textContent = `${data.creatorType.toUpperCase()}: ${data.creatorId}`;
@@ -1406,7 +1406,7 @@ ROBLOX_GROUP_ID=9876543</div>
       fd.append('displayName', customName && jobs.length === 1 ? customName : file.name.replace(/\.[^.]+$/, ''));
       fd.append('description', $('description').value.trim() || 'Uploaded with Bulk Animation Dashboard');
 
-      if (customCreatorType !== 'env' && customCreatorId) {
+      if (customCreatorType !== 'env') {
         fd.append('creatorType', customCreatorType);
         fd.append('creatorId', customCreatorId);
       }
