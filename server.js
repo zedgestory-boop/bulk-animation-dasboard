@@ -4,13 +4,12 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
-const zlib = require('zlib');
 
 const app = express();
 const PRIMARY_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 const MAX_SCAN_SIZE = 200 * 1024 * 1024; // 200 MiB, scan only
 const MAX_UPLOAD_SIZE = 20 * 1024 * 1024; // 20 MiB per Roblox upload
-const MAX_BATCH_FILES = 1000;
+const MAX_BATCH_FILES = 1000;\nconst ROBLOX_REQUEST_TIMEOUT_MS = 30000;
 const ROBLOX_API = 'https://apis.roblox.com/assets/v1';
 
 app.disable('x-powered-by');
@@ -74,45 +73,64 @@ app.get('/api/config-status', (_req, res) => {
 });
 
 app.get('/api/test-connection', async (_req, res) => {
-  const apiKey = process.env.ROBLOX_API_KEY;
+  const apiKey = String(process.env.ROBLOX_API_KEY || '').trim();
   if (!apiKey) {
     return res.status(400).json({
       connected: false,
-      error: 'ROBLOX_API_KEY belum dikonfigurasi di Railway Variables atau .env'
+      authenticated: false,
+      error: 'ROBLOX_API_KEY belum dikonfigurasi di Railway Variables.'
     });
   }
 
+  let creator;
   try {
-    let creator;
-    try {
-      creator = getCreator();
-    } catch (e) {
-      return res.status(400).json({
-        connected: false,
-        error: e.message
-      });
-    }
+    creator = getCreator();
+  } catch (e) {
+    return res.status(400).json({ connected: false, authenticated: false, error: e.message });
+  }
 
-    // Roblox Assets API does not provide a dedicated test-connection endpoint.
-    // Check DNS/TLS/network reachability only; this must not be presented as proof that the key is valid.
-    const response = await fetch(`${ROBLOX_API}/`, {
+  try {
+    // Roblox has no generic "validate API key" endpoint. An intentionally invalid
+    // operation ID tests the authenticated endpoint without creating or changing assets.
+    const response = await fetch(`${ROBLOX_API}/operations/__connection_test_invalid_operation__`, {
       method: 'GET',
       headers: { 'x-api-key': apiKey },
       signal: AbortSignal.timeout(10000)
     });
+    const raw = await response.text();
+    let payload = {};
+    try { payload = raw ? JSON.parse(raw) : {}; } catch (_) {}
+
+    if (response.status === 401) {
+      return res.status(401).json({
+        connected: false,
+        authenticated: false,
+        apiStatus: response.status,
+        error: 'Roblox menolak API key (401). Periksa key, status aktif, dan scope.'
+      });
+    }
+    if (response.status === 403) {
+      return res.status(403).json({
+        connected: true,
+        authenticated: false,
+        apiStatus: response.status,
+        error: 'Roblox dapat dijangkau, tetapi key tidak memiliki izin Read/asset:read yang diperlukan untuk memeriksa operasi.'
+      });
+    }
 
     return res.json({
       connected: true,
-      message: 'Server berhasil menjangkau Roblox Assets API. Status ini hanya memverifikasi konektivitas jaringan, bukan validitas API key.',
-      creator: creator.creator,
+      authenticated: true,
       apiStatus: response.status,
-      apiKeyValidated: false,
-      note: 'Validasi izin API key dilakukan saat upload aset resmi.'
+      message: 'Endpoint Roblox merespons dan permintaan tidak ditolak dengan 401/403. Uji upload nyata tetap diperlukan untuk memastikan izin grup dan tipe aset.',
+      creator: creator.creator,
+      diagnostic: payload.message || payload.error || 'Koneksi teruji tanpa membuat aset.'
     });
   } catch (err) {
     return res.status(502).json({
       connected: false,
-      error: `Gagal menghubungi Roblox API: ${err.message}`
+      authenticated: false,
+      error: `Gagal menghubungi Roblox Open Cloud: ${err.message}`
     });
   }
 });
@@ -187,42 +205,6 @@ async function getOperation(operationId) {
   return readRobloxResponse(response);
 }
 
-async function fetchRobloxAssetBuffer(assetId) {
-  const cleanId = String(assetId || '').replace(/^rbxassetid:\/\//i, '').trim();
-  if (!/^\d{5,20}$/.test(cleanId)) {
-    throw new Error(`ID "${assetId}" bukan format Asset ID Roblox numerik yang valid.`);
-  }
-
-  const url = `https://assetdelivery.roblox.com/v2/assetId/${encodeURIComponent(cleanId)}`;
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'Roblox/WinInet' }
-  });
-  if (!res.ok) {
-    throw new Error(`Roblox Asset Delivery error: HTTP ${res.status}`);
-  }
-  const data = await res.json();
-  const location = data?.locations?.[0]?.location;
-  if (!location) {
-    throw new Error(`Aset ID ${cleanId} tidak dapat diakses atau bukan aset publik.`);
-  }
-
-  const cdnRes = await fetch(location);
-  if (!cdnRes.ok) {
-    throw new Error(`Gagal mengunduh file aset dari CDN Roblox: HTTP ${cdnRes.status}`);
-  }
-  const arrayBuffer = await cdnRes.arrayBuffer();
-  let buffer = Buffer.from(arrayBuffer);
-
-  // Decompress gzip if present
-  if (buffer.length > 2 && buffer[0] === 0x1f && buffer[1] === 0x8b) {
-    try {
-      buffer = zlib.gunzipSync(buffer);
-    } catch (_) {}
-  }
-
-  return buffer;
-}
-
 async function uploadAnimationBuffer(buffer, filename, displayName, description, creatorContext, apiKey) {
   const form = new FormData();
   form.append('request', JSON.stringify({
@@ -232,13 +214,16 @@ async function uploadAnimationBuffer(buffer, filename, displayName, description,
     creationContext: creatorContext
   }));
   const ext = path.extname(filename).toLowerCase();
-  const mimeType = ext === '.rbxm' || ext === '.rbxmx' ? 'model/x-rbxm' : 'application/octet-stream';
-  form.append('fileContent', new Blob([buffer], { type: mimeType }), filename);
+  if (!['.rbxm', '.rbxmx'].includes(ext)) {
+    throw new Error('Upload aset Animation melalui Open Cloud hanya menerima file .rbxm atau .rbxmx. File .fbx bukan format upload Animation di endpoint ini.');
+  }
+  form.append('fileContent', new Blob([buffer], { type: 'model/x-rbxm' }), filename);
 
   const response = await fetch(`${ROBLOX_API}/assets`, {
     method: 'POST',
     headers: { 'x-api-key': apiKey },
-    body: form
+    body: form,
+    signal: AbortSignal.timeout(ROBLOX_REQUEST_TIMEOUT_MS)
   });
   const data = await readRobloxResponse(response);
   const operationPath = data.path || data.operationPath || '';
@@ -301,8 +286,10 @@ app.post('/api/upload-animation', (req, res) => {
     const displayName = String(req.body.displayName || path.parse(filename).name).trim().slice(0, 50);
     const description = String(req.body.description || 'Uploaded using Bulk Animation Dashboard').trim().slice(0, 1000);
     const ext = path.extname(filename).toLowerCase();
-    if (!['.fbx', '.rbxm', '.rbxmx'].includes(ext)) {
-      return res.status(400).json({ error: 'Format yang diizinkan: .fbx, .rbxm, atau .rbxmx.' });
+    if (!['.rbxm', '.rbxmx'].includes(ext)) {
+      return res.status(400).json({
+        error: 'Untuk membuat aset Animation lewat Roblox Open Cloud, pilih file .rbxm atau .rbxmx. File .fbx adalah format model 3D, bukan upload Animation.'
+      });
     }
 
     let creatorContext;
@@ -323,49 +310,11 @@ app.post('/api/upload-animation', (req, res) => {
   });
 });
 
-// Endpoint to fetch arbitrary Roblox Animation ID and spoof/re-upload to user's creator
-app.post('/api/spoof-by-id', async (req, res) => {
-  const apiKey = process.env.ROBLOX_API_KEY;
-  if (!apiKey) return res.status(503).json({ error: 'ROBLOX_API_KEY belum diatur di Railway Variables (.env).' });
-
-  const rawId = String(req.body.assetId || '').trim();
-  if (!rawId) return res.status(400).json({ error: 'Asset ID wajib diisi.' });
-
-  const cleanId = rawId.replace(/^rbxassetid:\/\//i, '').trim();
-  const displayName = String(req.body.displayName || `Spoofed_Anim_${cleanId}`).trim().slice(0, 50);
-  const description = String(req.body.description || `Spoofed from original ID ${cleanId} via Bulk Animation Dashboard`).trim().slice(0, 1000);
-
-  let creatorContext;
-  try {
-    creatorContext = getCreator(req.body.creatorType, req.body.creatorId);
-  } catch (e) {
-    return res.status(400).json({ error: e.message });
-  }
-
-  try {
-    // 1. Fetch asset binary from Roblox Asset Delivery CDN
-    const buffer = await fetchRobloxAssetBuffer(cleanId);
-    if (!buffer || buffer.length === 0) {
-      return res.status(404).json({ error: `Tidak ada data animasi yang dapat diunduh untuk ID ${cleanId}.` });
-    }
-
-    // 2. Upload the animation buffer to creator
-    const filename = `anim_${cleanId}.rbxm`;
-    const result = await uploadAnimationBuffer(buffer, filename, displayName, description, creatorContext, apiKey);
-
-    const httpStatus = result.status === 'processing' ? 202 : 200;
-    return res.status(httpStatus).json({
-      ...result,
-      oldAssetId: cleanId,
-      originalUrl: `rbxassetid://${cleanId}`
-    });
-  } catch (e) {
-    const status = e.status && e.status >= 400 && e.status < 600 ? e.status : 502;
-    return res.status(status).json({
-      error: e.message || `Gagal melakukan spoofing untuk ID ${cleanId}`,
-      oldAssetId: cleanId
-    });
-  }
+// Deliberately disable arbitrary-ID re-upload. Use source files that you own or are licensed to upload.
+app.post('/api/spoof-by-id', (_req, res) => {
+  return res.status(410).json({
+    error: 'Upload ulang langsung dari Asset ID dinonaktifkan. Untuk menghindari pemindahan aset tanpa izin, unggah file .rbxm/.rbxmx milik sendiri atau yang berlisensi.'
+  });
 });
 
 app.get('/api/operation/:operationId', async (req, res) => {
