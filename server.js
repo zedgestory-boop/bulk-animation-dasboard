@@ -93,24 +93,21 @@ app.get('/api/test-connection', async (_req, res) => {
       });
     }
 
-    // Ping Roblox Assets API operation endpoint with the API key to test authentication
-    const response = await fetch(`${ROBLOX_API}/operations/test-connection-check`, {
-      headers: { 'x-api-key': apiKey }
+    // Roblox Assets API does not provide a dedicated test-connection endpoint.
+    // Check DNS/TLS/network reachability only; this must not be presented as proof that the key is valid.
+    const response = await fetch(`${ROBLOX_API}/`, {
+      method: 'GET',
+      headers: { 'x-api-key': apiKey },
+      signal: AbortSignal.timeout(10000)
     });
-
-    // 404 or 403 or 400 means network reached Roblox; if 401/403 with invalid api key, report it
-    if (response.status === 401) {
-      return res.status(401).json({
-        connected: false,
-        error: 'Roblox API Key tidak valid atau kedaluwarsa. Periksa izin "Assets:read" dan "Assets:write".'
-      });
-    }
 
     return res.json({
       connected: true,
-      message: 'Koneksi ke Roblox Open Cloud API berhasil!',
+      message: 'Server berhasil menjangkau Roblox Assets API. Status ini hanya memverifikasi konektivitas jaringan, bukan validitas API key.',
       creator: creator.creator,
-      apiStatus: response.status
+      apiStatus: response.status,
+      apiKeyValidated: false,
+      note: 'Validasi izin API key dilakukan saat upload aset resmi.'
     });
   } catch (err) {
     return res.status(502).json({
@@ -434,12 +431,7 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Terjadi kesalahan server.' });
 });
 
-const PORTS = [...new Set([PRIMARY_PORT, 8080, 3000])];
-
-PORTS.forEach(p => {
-  try {
-    app.listen(p, '0.0.0.0', () => console.log(`Bulk Animation Dashboard berjalan di port ${p}`));
-  } catch (err) {
-    console.warn(`Gagal bind ke port ${p}:`, err.message);
-  }
+// Railway assigns one port through process.env.PORT. Listen only on that port.
+app.listen(PRIMARY_PORT, '0.0.0.0', () => {
+  console.log(`Bulk Animation Dashboard berjalan di 0.0.0.0:${PRIMARY_PORT}`);
 });
