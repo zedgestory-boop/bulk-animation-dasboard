@@ -201,6 +201,24 @@ function getCreator(overrideType, overrideId) {
   throw new Error('Isi ROBLOX_USER_ID atau ROBLOX_GROUP_ID di Railway Variables, atau pilih target creator di panel.');
 }
 
+function extractModerationState(payload) {
+  // Roblox Open Cloud nests this under response.moderationResult.moderationState.
+  const candidates = [
+    payload?.response?.moderationResult?.moderationState,
+    payload?.moderationResult?.moderationState,
+    payload?.response?.moderationState,
+    payload?.moderationState
+  ];
+  const raw = candidates.find(v => typeof v === 'string' && v.trim());
+  if (!raw) return 'Unknown';
+  const value = raw.trim();
+  const normalized = value.toUpperCase();
+  if (normalized === 'MODERATION_STATE_APPROVED' || normalized === 'APPROVED') return 'Approved';
+  if (normalized === 'MODERATION_STATE_REJECTED' || normalized === 'REJECTED') return 'Rejected';
+  if (normalized === 'MODERATION_STATE_PENDING' || normalized === 'PENDING' || normalized === 'MODERATION_STATE_REVIEW_PENDING') return 'Pending';
+  return value;
+}
+
 async function readRobloxResponse(response) {
   const raw = await response.text();
   let data;
@@ -249,7 +267,7 @@ async function uploadAnimationBuffer(buffer, filename, displayName, description,
   let operationId = data.operationId || data.id || '';
   if (!operationId && operationPath) operationId = operationPath.split('/').filter(Boolean).pop();
   if (!operationId && data.assetId) {
-    return { status: 'success', assetId: String(data.assetId), operationId: '', moderationState: data.moderationState || 'Unknown', response: data };
+    return { status: 'success', assetId: String(data.assetId), operationId: '', moderationState: extractModerationState(data), response: data };
   }
   if (!operationId) {
     const error = new Error('Roblox tidak mengembalikan operation ID. Periksa respons Roblox sebelum mengulang agar tidak membuat aset duplikat.');
@@ -288,7 +306,7 @@ async function uploadAnimationBuffer(buffer, filename, displayName, description,
     status: 'success',
     assetId: assetId ? String(assetId) : null,
     operationId,
-    moderationState: operation.response?.moderationState || operation.moderationState || 'Unknown',
+    moderationState: extractModerationState(operation),
     response: operation
   };
 }
@@ -346,7 +364,7 @@ app.get('/api/operation/:operationId', async (req, res) => {
     if (operation.error || operation.status === 'Failed') {
       return res.status(422).json({ status: 'failed', operationId: req.params.operationId, error: operation.error?.message || operation.error || 'Roblox gagal memproses aset.' });
     }
-    return res.json({ status: 'success', operationId: req.params.operationId, assetId: operation.response?.assetId || operation.assetId || null, moderationState: operation.response?.moderationState || operation.moderationState || 'Unknown', response: operation });
+    return res.json({ status: 'success', operationId: req.params.operationId, assetId: operation.response?.assetId || operation.assetId || null, moderationState: extractModerationState(operation), response: operation });
   } catch (e) {
     return res.status(e.status || 502).json({ error: e.message || 'Gagal memeriksa status operasi Roblox.' });
   }
