@@ -1,1 +1,223 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bulk Animation Dashboard</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#141b2f;--panel2:#1a2440;--line:#2a3656;--text:#eef3ff;--muted:#9ba9c7;--blue:#68a8ff;--green:#55d6a2;--red:#ff7777;--yellow:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top right,#17284a 0,#0b1020 44%);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}.wrap{max-width:1200px;margin:auto;padding:28px 18px 60px}header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap}h1{font-size:clamp(24px,4vw,36px);margin:0}h2{font-size:18px;margin:0 0 14px}.sub,.muted{color:var(--muted)}.sub{margin:5px 0 0}.pill{border:1px solid var(--line);border-radius:99px;padding:6px 11px;color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.panel{background:linear-gradient(160deg,rgba(26,36,64,.97),rgba(17,24,42,.97));border:1px solid var(--line);border-radius:16px;padding:19px;min-width:0;box-shadow:0 10px 30px #0002}.wide{grid-column:1/-1}label{display:block;font-size:13px;color:var(--muted);margin:10px 0 5px}input,textarea,button{font:inherit}input[type=text],input[type=search],textarea{width:100%;border:1px solid var(--line);background:#0c1325;color:var(--text);border-radius:9px;padding:10px 12px;outline:none}input:focus,textarea:focus{border-color:var(--blue)}input[type=file]{max-width:100%;width:100%;padding:11px;background:#0c1325;border:1px dashed #43557d;border-radius:10px;color:var(--muted)}textarea{min-height:65px;resize:vertical}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:9px;padding:10px 13px;background:var(--blue);color:#071226;font-weight:700;cursor:pointer}button.secondary{background:#273553;color:var(--text);border:1px solid #3a4b70}button.danger{background:#482733;color:#ffdce2;border:1px solid #713848}button:disabled{opacity:.45;cursor:not-allowed}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}.stat{background:#0c1325;border:1px solid var(--line);border-radius:12px;padding:12px}.stat strong{display:block;font-size:22px}.stat span{color:var(--muted);font-size:12px}.queue-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.overall{height:9px;background:#0a1020;border-radius:99px;overflow:hidden;margin:12px 0 16px}.overall>div{height:100%;background:linear-gradient(90deg,#68a8ff,#55d6a2);width:0%;transition:width .2s}.file-list{display:grid;gap:9px}.file-row{border:1px solid var(--line);border-radius:12px;background:#10182b;padding:12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}.filename{font-weight:650;overflow-wrap:anywhere}.file-meta{font-size:12px;color:var(--muted);margin-top:3px}.status{font-size:12px;border-radius:99px;padding:4px 8px;display:inline-block;margin-top:7px;background:#28344e;color:#d7e3ff}.status.success{background:#153d34;color:#9cf0d0}.status.failed{background:#48242e;color:#ffb4bd}.status.uploading,.status.processing{background:#3c341c;color:#ffe19a}.mini{padding:6px 9px;font-size:12px}.empty{padding:24px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}.row-progress{height:5px;background:#080e1b;border-radius:99px;overflow:hidden;margin-top:8px}.row-progress div{height:100%;width:0;background:var(--blue)}.note{font-size:12px;color:var(--muted);margin-top:10px}.table-list{display:grid;gap:7px}.id-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:8px 0;overflow-wrap:anywhere}.id-row:last-child{border:0}.message{margin-top:10px;color:var(--yellow);font-size:13px;white-space:pre-wrap}.message.good{color:var(--green)}.file-row-main{min-width:0}@media(max-width:760px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.file-row{grid-template-columns:minmax(0,1fr)}header{align-items:flex-start}}
+</style>
+</head>
+<body><main class="wrap">
+<header><div><h1>Bulk Animation Dashboard</h1><p class="sub">Upload batch dengan antrean maksimal 5 file bersamaan.</p></div><span class="pill">Railway · Roblox Assets API</span></header>
+<div class="grid">
+<section class="panel"><h2>Tambah Animation ID</h2><label for="newId">Asset ID</label><input id="newId" type="text" placeholder="Contoh: 105442430110414"><div class="actions"><button id="addId">Tambah ID</button><button class="secondary" id="exportCsv">Export CSV ID</button></div><p class="note">Daftar ID disimpan di browser ini, bukan di Roblox.</p><div id="idMessage" class="message"></div></section>
+<section class="panel"><h2>Pindai file RBXM / RBXMX</h2><label for="scanFile">Pilih file (maksimal 200 MiB)</label><input id="scanFile" type="file" accept=".rbxm,.rbxmx"><div class="actions"><button id="scanBtn">Pindai ID</button></div><div id="scanMessage" class="message"></div><div id="scanResults" class="table-list"></div></section>
+<section class="panel wide"><div class="queue-top"><div><h2>Bulk Upload Queue</h2><div class="muted">Pilih sampai 1.000 file. Slot upload dibatasi 5; file lain menunggu antrean.</div></div><span class="pill">Maks. 20 MiB per file</span></div>
+<label for="bulkFiles">File animasi (.fbx, .rbxm, .rbxmx)</label><input id="bulkFiles" type="file" accept=".fbx,.rbxm,.rbxmx" multiple>
+<div class="grid" style="margin-top:8px"><div><label for="namePrefix">Nama aset (opsional, untuk satu file)</label><input id="namePrefix" type="text" placeholder="Kosong = gunakan nama file"></div><div><label for="description">Deskripsi (opsional)</label><input id="description" type="text" placeholder="Uploaded using Bulk Animation Dashboard"></div></div>
+<div class="actions"><button id="startQueue">Mulai antrean</button><button class="secondary" id="pauseQueue">Jeda antrean</button><button class="secondary" id="retryFailed">Coba ulang file gagal</button><button class="secondary" id="exportQueue">Export hasil CSV</button><button class="danger" id="clearQueue">Bersihkan daftar</button></div>
+<div id="queueMessage" class="message"></div>
+<div class="stats"><div class="stat"><strong id="statTotal">0</strong><span>Total file</span></div><div class="stat"><strong id="statActive">0 / 5</strong><span>Sedang upload</span></div><div class="stat"><strong id="statWaiting">0</strong><span>Menunggu</span></div><div class="stat"><strong id="statDone">0</strong><span>Selesai / gagal</span></div></div>
+<div class="overall"><div id="overallBar"></div></div><div id="queueList" class="file-list"><div class="empty">Pilih file lalu tekan “Mulai antrean”.</div></div>
+<p class="note">Progress dan hasil disimpan di localStorage browser. File aslinya tidak tersimpan di browser setelah halaman ditutup. Jika halaman dimuat ulang, pilih kembali file yang sama untuk mengunggah file yang masih menunggu. File berstatus “Memproses Roblox” tidak otomatis diunggah ulang agar menghindari aset duplikat.</p>
+</section>
+<section class="panel wide"><div class="queue-top"><h2>Daftar Animation ID</h2><input id="searchIds" type="search" placeholder="Cari ID..." style="max-width:320px"></div><div id="idList" class="table-list"></div></section>
+</div></main>
+<script>
+(() => {
+  'use strict';
+  const CONCURRENCY = 5, MAX_FILES = 1000, MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+  const $ = id => document.getElementById(id);
+  const safeJson = (key, fallback) => { try { const v = JSON.parse(localStorage.getItem(key)); return v ?? fallback; } catch (_) { return fallback; } };
+  let animationIds = safeJson('bulkAnimationIds_v2', []);
+  let jobs = safeJson('bulkAnimationJobs_v2', []);
+  let selectedFiles = new Map();
+  let running = false, paused = false, activeCount = 0, cursor = 0, pumpRunning = false;
+  let jobSeq = 0;
+  const save = () => { localStorage.setItem('bulkAnimationIds_v2', JSON.stringify(animationIds)); localStorage.setItem('bulkAnimationJobs_v2', JSON.stringify(jobs.map(({file, ...j}) => j))); };
+  const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const bytes = n => n < 1024*1024 ? `${(n/1024).toFixed(0)} KiB` : `${(n/1024/1024).toFixed(1)} MiB`;
+  const setMessage = (id, msg, good=false) => { $(id).textContent = msg || ''; $(id).classList.toggle('good', good); };
 
+  function renderIds() {
+    const q = $('searchIds').value.trim().toLowerCase();
+    const visible = animationIds.filter(id => id.toLowerCase().includes(q));
+    $('idList').innerHTML = visible.length ? visible.map(id => `<div class="id-row"><span>${escapeHtml(id)}</span><button class="danger mini" data-delete-id="${escapeHtml(id)}">Hapus</button></div>`).join('') : '<div class="empty">Belum ada Animation ID.</div>';
+    $('idList').querySelectorAll('[data-delete-id]').forEach(btn => btn.addEventListener('click', () => { animationIds = animationIds.filter(x => x !== btn.dataset.deleteId); save(); renderIds(); }));
+  }
+  $('addId').addEventListener('click', () => {
+    const id = $('newId').value.trim().replace(/^rbxassetid:\/\//i, '');
+    if (!/^\d{5,20}$/.test(id)) return setMessage('idMessage', 'Masukkan ID numerik yang valid.');
+    if (!animationIds.includes(id)) animationIds.unshift(id);
+    $('newId').value = ''; save(); renderIds(); setMessage('idMessage', 'ID berhasil ditambahkan.', true);
+  });
+  $('newId').addEventListener('keydown', e => { if (e.key === 'Enter') $('addId').click(); });
+  $('searchIds').addEventListener('input', renderIds);
+  $('exportCsv').addEventListener('click', () => downloadCsv('animation-ids.csv', ['Asset ID'], animationIds.map(id => [id])));
+  function downloadCsv(name, headers, rows) {
+    const quote = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const csv = [headers, ...rows].map(row => row.map(quote).join(',')).join('\r\n');
+    const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'}), url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);
+  }
+
+  $('scanBtn').addEventListener('click', async () => {
+    const file = $('scanFile').files[0]; if (!file) return setMessage('scanMessage', 'Pilih file .rbxm atau .rbxmx.');
+    $('scanBtn').disabled = true; $('scanResults').innerHTML = ''; setMessage('scanMessage', 'Sedang memindai...');
+    try {
+      const fd = new FormData(); fd.append('file', file);
+      const response = await fetch('/api/scan-rbxm', {method:'POST', body:fd}); const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Pemindaian gagal.');
+      $('scanResults').innerHTML = data.ids.length ? data.ids.map(id => `<div class="id-row"><span>${escapeHtml(id)}</span><button class="secondary mini" data-add-scan="${escapeHtml(id)}">Tambah ke daftar</button></div>`).join('') : '<div class="empty">Tidak ada ID ditemukan.</div>';
+      $('scanResults').querySelectorAll('[data-add-scan]').forEach(btn => btn.addEventListener('click', () => { const id=btn.dataset.addScan; if(!animationIds.includes(id)) animationIds.unshift(id); save(); renderIds(); setMessage('idMessage', `ID ${id} ditambahkan.`, true); }));
+      setMessage('scanMessage', `${data.note} Ditemukan: ${data.count} ID.`, true);
+    } catch (e) { setMessage('scanMessage', e.message); }
+    finally { $('scanBtn').disabled = false; }
+  });
+
+  function statusLabel(status) { return ({queued:'Menunggu',uploading:'Mengunggah',processing:'Memproses Roblox',success:'Berhasil',failed:'Gagal',uncertain:'Perlu diperiksa'})[status] || status; }
+  function renderQueue() {
+    const total = jobs.length, active = jobs.filter(j => j.status === 'uploading').length;
+    const waiting = jobs.filter(j => j.status === 'queued').length;
+    const done = jobs.filter(j => ['success','failed','uncertain'].includes(j.status)).length;
+    const success = jobs.filter(j => j.status === 'success').length;
+    $('statTotal').textContent = total; $('statActive').textContent = `${active} / ${CONCURRENCY}`; $('statWaiting').textContent = waiting; $('statDone').textContent = `${done} (${success} sukses)`;
+    $('overallBar').style.width = `${total ? (done/total)*100 : 0}%`;
+    if (!jobs.length) { $('queueList').innerHTML = '<div class="empty">Pilih file lalu tekan “Mulai antrean”.</div>'; return; }
+    $('queueList').innerHTML = jobs.map(j => {
+      const pct = Math.max(0, Math.min(100, Number(j.progress)||0));
+      const cls = ['success','failed','uploading','processing'].includes(j.status) ? j.status : '';
+      const result = j.assetId ? `Asset ID: ${escapeHtml(j.assetId)}` : (j.error ? escapeHtml(j.error) : (j.operationId ? `Operation: ${escapeHtml(j.operationId)}` : `${bytes(j.size||0)} · ${pct}%`));
+      const retry = ['failed','uncertain'].includes(j.status) ? `<button class="secondary mini" data-retry="${j.key}">Retry</button>` : '';
+      return `<div class="file-row"><div class="file-row-main"><div class="filename">${escapeHtml(j.name)}</div><div class="file-meta">${result}</div><span class="status ${cls}">${statusLabel(j.status)}</span><div class="row-progress"><div style="width:${pct}%"></div></div></div><div class="actions" style="margin:0">${retry}<button class="danger mini" data-remove="${j.key}" ${j.status==='uploading'?'disabled':''}>Hapus</button></div></div>`;
+    }).join('');
+    $('queueList').querySelectorAll('[data-retry]').forEach(b => b.addEventListener('click', () => retryJob(b.dataset.retry)));
+    $('queueList').querySelectorAll('[data-remove]').forEach(b => b.addEventListener('click', () => { const key=b.dataset.remove; jobs=jobs.filter(j=>j.key!==key); selectedFiles.delete(key); save(); renderQueue(); }));
+  }
+  function persistRender() { save(); renderQueue(); }
+  function fileKey(file) { return `${file.name}__${file.size}__${file.lastModified}`; }
+  $('bulkFiles').addEventListener('change', () => {
+    const files = Array.from($('bulkFiles').files || []);
+    if (files.length > MAX_FILES) { setMessage('queueMessage', `Maksimal ${MAX_FILES} file per batch. Pilihan berisi ${files.length} file.`); $('bulkFiles').value=''; return; }
+    let added=0, skipped=0;
+    for (const file of files) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!['fbx','rbxm','rbxmx'].includes(ext)) { skipped++; continue; }
+      const key=fileKey(file); selectedFiles.set(key,file);
+      const existing=jobs.find(j=>j.key===key);
+      if (existing) {
+        if (['queued','failed','uncertain'].includes(existing.status)) existing.fileAvailable=true;
+        continue;
+      }
+      jobs.push({key,name:file.name,size:file.size,lastModified:file.lastModified,status:'queued',progress:0,assetId:'',operationId:'',error:'',fileAvailable:true,createdAt:new Date().toISOString()}); added++;
+    }
+    persistRender();
+    setMessage('queueMessage', `${added} file ditambahkan ke antrean${skipped ? `; ${skipped} file dengan format tidak didukung dilewati` : ''}. Pilih ulang file yang sama jika statusnya menunggu setelah reload.`, true);
+  });
+
+  function xhrUpload(job, file) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest(); xhr.open('POST','/api/upload-animation'); xhr.responseType='text';
+      xhr.upload.onprogress = e => { if (e.lengthComputable) { job.progress=Math.round(e.loaded/e.total*90); renderQueue(); } };
+      xhr.onload = () => {
+        let data={}; try { data=JSON.parse(xhr.responseText || '{}'); } catch (_) { data={error:xhr.responseText || 'Respons server tidak valid.'}; }
+        if (xhr.status >= 200 && xhr.status < 300) resolve({data,status:xhr.status});
+        else { const error=new Error(data.error || `HTTP ${xhr.status}`); error.httpStatus=xhr.status; error.data=data; reject(error); }
+      };
+      xhr.onerror = () => { const e=new Error('Koneksi terputus. Hasil di Roblox mungkin perlu diperiksa sebelum retry.'); e.uncertain=true; reject(e); };
+      xhr.ontimeout = () => { const e=new Error('Request timeout. Periksa status aset sebelum retry.'); e.uncertain=true; reject(e); };
+      xhr.timeout=180000;
+      const fd=new FormData(); fd.append('file',file,file.name);
+      const customName=$('namePrefix').value.trim();
+      fd.append('displayName', customName && jobs.length===1 ? customName : file.name.replace(/\.[^.]+$/,''));
+      fd.append('description',$('description').value.trim() || 'Uploaded using Bulk Animation Dashboard');
+      xhr.send(fd);
+    });
+  }
+  async function checkOperation(job) {
+    if (!job.operationId) return;
+    for (let i=0;i<90;i++) {
+      await new Promise(r=>setTimeout(r,3000));
+      try {
+        const r=await fetch(`/api/operation/${encodeURIComponent(job.operationId)}`);
+        const d=await r.json();
+        if (r.status===202 || d.status==='processing') { job.status='processing'; job.progress=95; persistRender(); continue; }
+        if (r.ok && d.status==='success') { job.status='success'; job.progress=100; job.assetId=d.assetId ? String(d.assetId) : ''; job.error=d.moderationState ? `Moderasi: ${d.moderationState}` : ''; persistRender(); return; }
+        job.status='failed'; job.error=d.error || 'Roblox gagal memproses aset.'; persistRender(); return;
+      } catch (_) { /* temporary network error: keep checking */ }
+    }
+    job.status='processing'; job.error='Roblox masih memproses. Jangan upload ulang dulu; status akan tetap tercatat.'; persistRender();
+  }
+  async function processJob(job) {
+    const file=selectedFiles.get(job.key);
+    if (!file) { job.status='queued'; job.error='Pilih ulang file ini di pemilih file untuk melanjutkan.'; persistRender(); return; }
+    if (file.size > MAX_UPLOAD_BYTES) { job.status='failed'; job.error=`File ${bytes(file.size)} melebihi batas 20 MiB.`; persistRender(); return; }
+    job.status='uploading'; job.progress=0; job.error=''; persistRender();
+    try {
+      const {data,status}=await xhrUpload(job,file);
+      if (data.status==='success') { job.status='success'; job.progress=100; job.assetId=data.assetId ? String(data.assetId) : ''; job.operationId=data.operationId || ''; job.error=data.moderationState ? `Moderasi: ${data.moderationState}` : ''; }
+      else if (status===202 || data.status==='processing') { job.status='processing'; job.progress=95; job.operationId=data.operationId || ''; job.error='Roblox masih memproses; tidak akan di-upload ulang otomatis.'; }
+      else { job.status='failed'; job.error=data.error || 'Upload gagal.'; }
+      persistRender();
+      if (job.status==='processing' && job.operationId) checkOperation(job);
+    } catch (e) {
+      // Avoid automatic retries after ambiguous network/server failures to reduce duplicate asset risk.
+      if (e.uncertain || (e.httpStatus >= 500)) { job.status='uncertain'; job.error=e.message; }
+      else { job.status='failed'; job.error=e.message; }
+      persistRender();
+    }
+  }
+  async function pump() {
+    if (pumpRunning) return; pumpRunning=true;
+    try {
+      while (running && !paused) {
+        const next=jobs.find(j=>j.status==='queued' && selectedFiles.has(j.key));
+        if (!next || activeCount>=CONCURRENCY) break;
+        activeCount++; renderQueue();
+        processJob(next).finally(() => { activeCount=Math.max(0,activeCount-1); renderQueue(); pumpRunning=false; if (running && !paused) pump(); });
+      }
+    } finally { pumpRunning=false; }
+    if (!activeCount && !jobs.some(j=>j.status==='queued' && selectedFiles.has(j.key))) {
+      running=false;
+      if (!jobs.some(j=>j.status==='uploading')) setMessage('queueMessage','Antrean yang tersedia selesai. File berstatus “Memproses Roblox” tetap dipantau terpisah.',true);
+    }
+  }
+  $('startQueue').addEventListener('click', () => {
+    if (!jobs.length) return setMessage('queueMessage','Pilih file terlebih dahulu.');
+    const queued=jobs.filter(j=>j.status==='queued');
+    const missing=queued.filter(j=>!selectedFiles.has(j.key));
+    if (missing.length) setMessage('queueMessage',`${missing.length} file masih menunggu tetapi belum tersedia di browser. Pilih ulang file yang sama lewat pemilih file.`);
+    if (!queued.some(j=>selectedFiles.has(j.key))) return;
+    paused=false; running=true; setMessage('queueMessage','Antrean berjalan. Maksimal 5 file upload aktif bersamaan.',true); pump();
+  });
+  $('pauseQueue').addEventListener('click', () => { paused=true; running=false; setMessage('queueMessage','Antrean dijeda. Upload yang sedang berlangsung akan selesai; file menunggu tidak akan dimulai.',true); });
+  function retryJob(key) {
+    const j=jobs.find(x=>x.key===key); if(!j) return;
+    if (!selectedFiles.has(key)) return setMessage('queueMessage','Pilih ulang file ini terlebih dahulu.');
+    if (j.operationId && ['processing','uncertain'].includes(j.status)) return setMessage('queueMessage','File ini mungkin sudah diterima Roblox. Periksa status operasi/Creator Dashboard sebelum retry agar tidak membuat duplikat.');
+    j.status='queued'; j.progress=0; j.error=''; j.assetId=''; j.operationId=''; persistRender();
+    paused=false; running=true; pump();
+  }
+  $('retryFailed').addEventListener('click', () => {
+    let count=0;
+    for(const j of jobs) if(['failed'].includes(j.status) && selectedFiles.has(j.key)) { j.status='queued'; j.progress=0; j.error=''; count++; }
+    persistRender(); if(!count) return setMessage('queueMessage','Tidak ada file gagal yang siap dicoba ulang. Pastikan file tersedia dengan memilih ulang jika perlu.');
+    paused=false; running=true; setMessage('queueMessage',`${count} file gagal dimasukkan kembali ke antrean.`,true); pump();
+  });
+  $('exportQueue').addEventListener('click', () => downloadCsv('bulk-animation-results.csv',['Filename','Status','Asset ID','Operation ID','Error','Size bytes'],jobs.map(j=>[j.name,j.status,j.assetId,j.operationId,j.error,j.size])));
+  $('clearQueue').addEventListener('click', () => {
+    if (jobs.some(j=>j.status==='uploading')) return setMessage('queueMessage','Tunggu upload aktif selesai sebelum membersihkan antrean.');
+    if (!confirm('Bersihkan seluruh daftar antrean dan riwayat lokal?')) return;
+    jobs=[]; selectedFiles.clear(); $('bulkFiles').value=''; save(); renderQueue(); setMessage('queueMessage','Daftar antrean dibersihkan.',true);
+  });
+  // On reload, statuses that were in-flight are made cautious, never silently re-uploaded.
+  for(const j of jobs) {
+    if(j.status==='uploading') { j.status='uncertain'; j.error='Halaman dimuat ulang saat upload. Periksa Roblox sebelum retry.'; }
+    if(j.status==='queued') j.error='Pilih ulang file ini jika belum tersedia di pemilih file.';
+  }
+  save(); renderIds(); renderQueue();
+  // Resume checking existing Roblox operations after a page reload; do not resubmit their files.
+  for (const j of jobs) if (j.status === 'processing' && j.operationId) checkOperation(j);
+})();
+</script></body></html>
