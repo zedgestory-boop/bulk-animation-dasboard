@@ -202,7 +202,7 @@ function getCreator(overrideType, overrideId) {
 }
 
 function extractModerationState(payload) {
-  // Roblox Open Cloud nests this under response.moderationResult.moderationState.
+  // Roblox may return the moderation state in the operation's response Asset.
   const candidates = [
     payload?.response?.moderationResult?.moderationState,
     payload?.moderationResult?.moderationState,
@@ -215,8 +215,42 @@ function extractModerationState(payload) {
   const normalized = value.toUpperCase();
   if (normalized === 'MODERATION_STATE_APPROVED' || normalized === 'APPROVED') return 'Approved';
   if (normalized === 'MODERATION_STATE_REJECTED' || normalized === 'REJECTED') return 'Rejected';
-  if (normalized === 'MODERATION_STATE_PENDING' || normalized === 'PENDING' || normalized === 'MODERATION_STATE_REVIEW_PENDING') return 'Pending';
+  if (
+    normalized === 'MODERATION_STATE_PENDING' ||
+    normalized === 'PENDING' ||
+    normalized === 'MODERATION_STATE_REVIEW_PENDING' ||
+    normalized === 'REVIEWING' ||
+    normalized === 'MODERATION_STATE_REVIEWING'
+  ) return 'Pending';
   return value;
+}
+
+async function resolveModerationState(operation, assetId, apiKey) {
+  const fromOperation = extractModerationState(operation);
+  if (fromOperation !== 'Unknown' || !assetId) return fromOperation;
+
+  // Some responses omit moderationResult on the operation. Try the asset version endpoint.
+  // This is a best-effort read; if asset:read permission is missing, keep the honest Unknown state.
+  const revisionId = String(operation?.response?.revisionId || '1');
+  const candidates = [revisionId, '1'].filter((value, index, all) => all.indexOf(value) === index);
+  for (const version of candidates) {
+    try {
+      const response = await fetch(
+        `${ROBLOX_API}/assets/${encodeURIComponent(assetId)}/versions/${encodeURIComponent(version)}`,
+        {
+          headers: { 'x-api-key': apiKey },
+          signal: AbortSignal.timeout(ROBLOX_REQUEST_TIMEOUT_MS)
+        }
+      );
+      if (!response.ok) continue;
+      const data = await response.json();
+      const state = extractModerationState(data);
+      if (state !== 'Unknown') return state;
+    } catch (_) {
+      // Keep trying a fallback version, then return Unknown without failing the successful upload.
+    }
+  }
+  return 'Unknown';
 }
 
 async function readRobloxResponse(response) {
@@ -306,7 +340,7 @@ async function uploadAnimationBuffer(buffer, filename, displayName, description,
     status: 'success',
     assetId: assetId ? String(assetId) : null,
     operationId,
-    moderationState: extractModerationState(operation),
+    moderationState: await resolveModerationState(operation, assetId ? String(assetId) : null, apiKey),
     response: operation
   };
 }
@@ -364,7 +398,9 @@ app.get('/api/operation/:operationId', async (req, res) => {
     if (operation.error || operation.status === 'Failed') {
       return res.status(422).json({ status: 'failed', operationId: req.params.operationId, error: operation.error?.message || operation.error || 'Roblox gagal memproses aset.' });
     }
-    return res.json({ status: 'success', operationId: req.params.operationId, assetId: operation.response?.assetId || operation.assetId || null, moderationState: extractModerationState(operation), response: operation });
+    const assetId = operation.response?.assetId || operation.assetId || null;
+    const moderationState = await resolveModerationState(operation, assetId ? String(assetId) : null, apiKey);
+    return res.json({ status: 'success', operationId: req.params.operationId, assetId, moderationState, response: operation });
   } catch (e) {
     return res.status(e.status || 502).json({ error: e.message || 'Gagal memeriksa status operasi Roblox.' });
   }
