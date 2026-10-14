@@ -64,7 +64,7 @@ app.get('/api/config-status', (_req, res) => {
     railwayConnected: isRailway || hasApiKey || userId || groupId,
     isRailway,
     hasApiKey,
-    apiKeyMasked: hasApiKey ? (process.env.ROBLOX_API_KEY.slice(0, 4) + '...' + process.env.ROBLOX_API_KEY.slice(-4)) : null,
+    apiKeyMasked: hasApiKey ? 'configured' : null,
     creatorType: groupId ? 'group' : (userId ? 'user' : 'none'),
     creatorId: groupId || userId || '',
     hasPassword,
