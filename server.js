@@ -229,25 +229,25 @@ async function resolveModerationState(operation, assetId, apiKey) {
   const fromOperation = extractModerationState(operation);
   if (fromOperation !== 'Unknown' || !assetId) return fromOperation;
 
-  // Some responses omit moderationResult on the operation. Try the asset version endpoint.
-  // This is a best-effort read; if asset:read permission is missing, keep the honest Unknown state.
-  const revisionId = String(operation?.response?.revisionId || '1');
-  const candidates = [revisionId, '1'].filter((value, index, all) => all.indexOf(value) === index);
-  for (const version of candidates) {
+  // The operation may no longer be retrievable; check current asset metadata first.
+  const endpoints = [
+    `${ROBLOX_API}/assets/${encodeURIComponent(assetId)}`,
+    `${ROBLOX_API}/assets/${encodeURIComponent(assetId)}/versions/${encodeURIComponent(operation?.response?.revisionId || '1')}`,
+    `${ROBLOX_API}/assets/${encodeURIComponent(assetId)}/versions/1`
+  ].filter((url, index, all) => all.indexOf(url) === index);
+
+  for (const url of endpoints) {
     try {
-      const response = await fetch(
-        `${ROBLOX_API}/assets/${encodeURIComponent(assetId)}/versions/${encodeURIComponent(version)}`,
-        {
-          headers: { 'x-api-key': apiKey },
-          signal: AbortSignal.timeout(ROBLOX_REQUEST_TIMEOUT_MS)
-        }
-      );
+      const response = await fetch(url, {
+        headers: { 'x-api-key': apiKey },
+        signal: AbortSignal.timeout(ROBLOX_REQUEST_TIMEOUT_MS)
+      });
       if (!response.ok) continue;
       const data = await response.json();
       const state = extractModerationState(data);
       if (state !== 'Unknown') return state;
     } catch (_) {
-      // Keep trying a fallback version, then return Unknown without failing the successful upload.
+      // Best effort only: don't turn a successful upload into a failed upload.
     }
   }
   return 'Unknown';
@@ -386,6 +386,19 @@ app.post('/api/spoof-by-id', (_req, res) => {
   return res.status(410).json({
     error: 'Upload ulang langsung dari Asset ID dinonaktifkan. Untuk menghindari pemindahan aset tanpa izin, unggah file .rbxm/.rbxmx milik sendiri atau yang berlisensi.'
   });
+});
+
+app.get('/api/asset/:assetId/moderation', async (req, res) => {
+  const apiKey = process.env.ROBLOX_API_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'ROBLOX_API_KEY belum diatur di Railway Variables.' });
+  const assetId = String(req.params.assetId || '');
+  if (!/^\\d+$/.test(assetId)) return res.status(400).json({ error: 'Asset ID tidak valid.' });
+  try {
+    const moderationState = await resolveModerationState({}, assetId, apiKey);
+    return res.json({ status: 'success', assetId, moderationState });
+  } catch (e) {
+    return res.status(e.status || 502).json({ error: e.message || 'Gagal memeriksa moderasi asset Roblox.' });
+  }
 });
 
 app.get('/api/operation/:operationId', async (req, res) => {
