@@ -739,7 +739,7 @@ ID referensi saja"></textarea>
   </div>
 
   <div id="queueList" class="file-list">
-    <div class="empty">Belum ada item di antrean. Masukkan ID di tab "Bulk Spoof by ID" atau pilih file di tab "Bulk Upload File".</div>
+    <div class="empty">Belum ada item di antrean. Masukkan ID di tab "Referensi Asset ID" atau pilih file di tab "Bulk Upload File".</div>
   </div>
 </section>
 
@@ -1228,7 +1228,7 @@ ROBLOX_GROUP_ID=9876543</div>
     });
 
     if (!jobs.length) {
-      $('queueList').innerHTML = '<div class="empty">Belum ada item di antrean. Masukkan ID di tab "Bulk Spoof by ID" atau pilih file di tab "Bulk Upload File".</div>';
+      $('queueList').innerHTML = '<div class="empty">Belum ada item di antrean. Masukkan ID di tab "Referensi Asset ID" atau pilih file di tab "Bulk Upload File".</div>';
       return;
     }
 
@@ -1714,14 +1714,14 @@ ROBLOX_GROUP_ID=9876543</div>
   $('btnAutoPopulateMap').addEventListener('click', () => {
     const successJobs = jobs.filter(j => j.status === 'success' && j.assetId && j.oldAssetId);
     if (!successJobs.length) {
-      return setMessage('patchMessage', 'Belum ada hasil spoof sukses yang memiliki ID asli. Masukkan ID di tab "Bulk Spoof by ID" terlebih dahulu, atau ketik pemetaan manual.', 'bad');
+      return setMessage('patchMessage', 'Belum ada hasil upload sukses yang memiliki ID asli. Masukkan ID di tab "Referensi Asset ID" terlebih dahulu, atau ketik pemetaan manual.', 'bad');
     }
     const map = {};
     successJobs.forEach(j => {
       map[j.oldAssetId] = j.assetId;
     });
     $('idMappingJson').value = JSON.stringify(map, null, 2);
-    setMessage('patchMessage', `Berhasil mengisi ${Object.keys(map).length} pemetaan ID lama ➔ baru dari hasil spoof.`, 'good');
+    setMessage('patchMessage', `Berhasil mengisi ${Object.keys(map).length} pemetaan ID lama ➔ baru dari hasil upload.`, 'good');
   });
 
   $('btnClearMap').addEventListener('click', () => {
