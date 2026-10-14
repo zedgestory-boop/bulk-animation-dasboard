@@ -347,8 +347,14 @@ app.post('/api/replace-rbxm-ids', (req, res) => {
     } catch (_) {
       return res.status(400).json({ error: 'Format idMap tidak valid.' });
     }
+    if (!idMap || typeof idMap !== 'object' || Array.isArray(idMap)) {
+      return res.status(400).json({ error: 'idMap harus berupa object JSON.' });
+    }
+    if (Object.keys(idMap).length > 1000) {
+      return res.status(400).json({ error: 'Maksimal 1.000 pasangan ID per proses.' });
+    }
 
-    const filename = req.file.originalname || 'animation.rbxm';
+    const filename = path.basename(req.file.originalname || 'animation.rbxm').replace(/["\\\\]/g, '_');
     const ext = path.extname(filename).toLowerCase();
     if (!['.rbxm', '.rbxmx'].includes(ext)) {
       return res.status(400).json({ error: 'Hanya file .rbxm dan .rbxmx yang didukung.' });
@@ -358,10 +364,12 @@ app.post('/api/replace-rbxm-ids', (req, res) => {
     let replacedCount = 0;
 
     for (const [oldId, newId] of Object.entries(idMap)) {
-      if (!oldId || !newId) continue;
-      const cleanOld = String(oldId).trim();
-      const cleanNew = String(newId).trim();
-      const pattern = new RegExp(`rbxassetid://${cleanOld}`, 'g');
+      const cleanOld = String(oldId).replace(/^rbxassetid:\/\//i, '').trim();
+      const cleanNew = String(newId).replace(/^rbxassetid:\/\//i, '').trim();
+      if (!/^\\d{5,20}$/.test(cleanOld) || !/^\\d{5,20}$/.test(cleanNew)) {
+        return res.status(400).json({ error: 'Setiap ID lama dan baru harus berupa Asset ID Roblox numerik 5–20 digit.' });
+      }
+      const pattern = new RegExp(`rbxassetid://${cleanOld}(?!\\d)`, 'g');
       const matches = content.match(pattern);
       if (matches) {
         replacedCount += matches.length;
@@ -370,7 +378,7 @@ app.post('/api/replace-rbxm-ids', (req, res) => {
     }
 
     const outputBuffer = Buffer.from(content, 'latin1');
-    res.setHeader('Content-Disposition', `attachment; filename="spoofed_${filename}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="patched_${filename}"`);
     res.setHeader('Content-Type', ext === '.rbxmx' ? 'application/xml' : 'application/octet-stream');
     res.setHeader('X-Replaced-Count', String(replacedCount));
     return res.send(outputBuffer);
