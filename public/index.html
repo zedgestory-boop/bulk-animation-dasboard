@@ -1731,7 +1731,7 @@ ROBLOX_GROUP_ID=9876543</div>
 
   $('btnPatchRbxm').addEventListener('click', async () => {
     const file = $('patchFile').files[0];
-    if (!file) return setMessage('patchMessage', 'Pilih file .rbxm atau .rbxmx yang ingin dipatch.', 'bad');
+    if (!file) return setMessage('patchMessage', 'Pilih file .rbxm, .rbxmx, .lua, atau .txt yang ingin diperbarui.', 'bad');
 
     let map = {};
     try {
@@ -1745,7 +1745,7 @@ ROBLOX_GROUP_ID=9876543</div>
 
     $('btnPatchRbxm').disabled = true;
     $('btnPatchRbxm').textContent = 'Memproses & Mengganti ID...';
-    setMessage('patchMessage', 'Sedang memproses dan mengganti ID animasi di file RBXM...');
+    setMessage('patchMessage', 'Sedang memproses dan mengganti referensi ID animasi...');
 
     try {
       const fd = new FormData();
@@ -1772,7 +1772,7 @@ ROBLOX_GROUP_ID=9876543</div>
       setMessage('patchMessage', 'Gagal mempatch file: ' + e.message, 'bad');
     } finally {
       $('btnPatchRbxm').disabled = false;
-      $('btnPatchRbxm').textContent = '🚀 Patch & Unduh File RBXM Baru';
+      $('btnPatchRbxm').textContent = '🚀 Ganti ID & Unduh File Hasil';
     }
   });
 
