@@ -6,10 +6,11 @@ Dashboard untuk mengunggah batch animasi ke akun/grup Roblox menggunakan Roblox 
 
 - Antrean browser hingga **1.000 file per batch**, maksimal **10 upload simultan**.
 - Upload animasi dengan Roblox Open Cloud Assets API.
-- Target creator akun atau grup (untuk target grup, setel `ROBLOX_GROUP_ID`).
+- Target creator dapat dipilih per batch: akun pribadi (`userId`) atau grup (`groupId`), melalui panel **Ganti Target Upload**.
+- Target default di Railway: isi salah satu `ROBLOX_USER_ID` atau `ROBLOX_GROUP_ID`; target panel dapat menimpa default untuk upload saat itu.
 - Polling status operasi Roblox, progress, retry manual, CSV hasil.
 - Scan referensi `rbxassetid://` dari file RBXM/RBXMX.
-- Patcher untuk mengganti referensi ID dalam file lokal dan mengunduh salinan yang sudah diperbarui.
+- Patcher untuk mengganti referensi ID dalam file `.rbxm`, `.rbxmx`, `.lua`, dan `.txt`, lalu mengunduh salinan yang sudah diperbarui. Untuk file Lua/TXT, ID numerik biasa juga diganti.
 - Health endpoint `/health`, diagnosis API, dan proteksi Basic Auth dashboard.
 
 ### Format animasi
@@ -23,17 +24,18 @@ Tambahkan melalui **Railway → service → Variables**. Dashboard menolak akses
 | Variable | Nilai |
 |---|---|
 | `ROBLOX_API_KEY` | API key Open Cloud, simpan sebagai secret |
-| `ROBLOX_GROUP_ID` | ID grup tujuan (angka, bukan nama grup) |
+| `ROBLOX_USER_ID` | ID akun pribadi default (opsional; gunakan jika target default adalah akun pribadi) |
+| `ROBLOX_GROUP_ID` | ID grup default (opsional; gunakan jika target default adalah grup) |
 | `DASHBOARD_PASSWORD` | Password dashboard yang kuat; username Basic Auth adalah `admin` |
 | `PORT` | Biasanya disediakan otomatis oleh Railway; jangan set manual kecuali diperlukan |
 
-Untuk upload aset grup, API key harus diberi akses Assets dengan izin Read/Write yang diperlukan, dan pembuat key harus memiliki izin grup untuk membuat aset. Jangan memasukkan API key ke HTML, GitHub, atau kode browser.
+Untuk upload aset grup, API key harus memiliki izin Assets yang diperlukan dan pembuat key harus punya izin membuat aset di grup. Untuk upload akun pribadi, pastikan API key dan izin aset cocok dengan akun target. Jangan memasukkan API key ke HTML, GitHub, atau kode browser. Jangan memasukkan API key ke HTML, GitHub, atau kode browser.
 
 ## Deploy di Railway
 
 1. Buka Railway dan pilih project/service yang terhubung ke repository ini.
 2. Pastikan Source mengarah ke branch `main` dan root directory kosong (root repository).
-3. Buka **Variables**, tambahkan `ROBLOX_API_KEY`, `ROBLOX_GROUP_ID`, dan `DASHBOARD_PASSWORD`.
+3. Buka **Variables**, tambahkan `ROBLOX_API_KEY`, salah satu dari `ROBLOX_USER_ID` atau `ROBLOX_GROUP_ID` (untuk default), dan `DASHBOARD_PASSWORD`. Jika memilih target creator di panel, isi ID numerik akun/grup yang benar.
 4. Buka **Settings → Networking** dan buat/gunakan public domain.
 5. Dari **Deployments**, pilih **Deploy latest commit** atau lakukan redeploy setelah commit terbaru.
 6. Tunggu deployment berhasil. Buka `https://DOMAIN-RAILWAY/health`; respons yang diharapkan adalah JSON dengan `"status":"ok"`.
