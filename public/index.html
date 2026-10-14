@@ -900,7 +900,7 @@ ROBLOX_GROUP_ID=9876543</div>
   $('railwayModal').addEventListener('click', e => { if (e.target === $('railwayModal')) $('railwayModal').classList.remove('open'); });
 
   $('btnCopyEnvSample').addEventListener('click', () => {
-    const text = 'PORT=3000\nROBLOX_API_KEY=rbx_live_...\nROBLOX_USER_ID=12345678\n# ROBLOX_GROUP_ID=\nDASHBOARD_PASSWORD=';
+    const text = 'ROBLOX_API_KEY=isi_api_key\\nROBLOX_GROUP_ID=12345678\\nDASHBOARD_PASSWORD=ganti_dengan_password_panjang\\n# PORT disediakan otomatis oleh Railway';
     navigator.clipboard.writeText(text);
     setMessage('modalMsg', 'Contoh variabel disalin ke clipboard!', 'good');
   });
