@@ -200,7 +200,8 @@ async function readRobloxResponse(response) {
 async function getOperation(operationId) {
   const apiKey = process.env.ROBLOX_API_KEY;
   const response = await fetch(`${ROBLOX_API}/operations/${encodeURIComponent(operationId)}`, {
-    headers: { 'x-api-key': apiKey }
+    headers: { 'x-api-key': apiKey },
+    signal: AbortSignal.timeout(ROBLOX_REQUEST_TIMEOUT_MS)
   });
   return readRobloxResponse(response);
 }
@@ -209,7 +210,7 @@ async function uploadAnimationBuffer(buffer, filename, displayName, description,
   const form = new FormData();
   form.append('request', JSON.stringify({
     assetType: 'Animation',
-    displayName: displayName || 'Animation Spoofed',
+    displayName: displayName || 'Animation',
     description: description || 'Uploaded using Bulk Animation Dashboard',
     creationContext: creatorContext
   }));
