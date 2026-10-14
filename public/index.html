@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bulk Animation Spoofer & Dashboard</title>
-<meta name="description" content="Bulk Roblox animation spoofer and uploader with 10-worker queue, direct ID spoofing, RBXM scanner, and Railway integration.">
-<meta property="og:title" content="Bulk Animation Spoofer & Dashboard">
-<meta property="og:description" content="Bulk Roblox animation spoofer and uploader with 10-worker queue, direct ID spoofing, RBXM scanner, and Railway integration.">
+<title>Bulk Animation Upload Dashboard</title>
+<meta name="description" content="Bulk Roblox animation file uploader with a 10-worker queue, RBXM scanner, and Railway Open Cloud integration.">
+<meta property="og:title" content="Bulk Animation Upload Dashboard">
+<meta property="og:description" content="Bulk Roblox animation file uploader with a 10-worker queue, RBXM scanner, and Railway Open Cloud integration.">
 <style>
 :root {
   color-scheme: dark;
@@ -555,8 +555,8 @@ button:disabled {
 
 <header>
   <div class="header-titles">
-    <h1>Bulk Animation Spoofer & Dashboard</h1>
-    <p class="sub">Batch uploader & spoofer animasi Roblox dengan antrean 10 pekerja simultan (hingga 1.000 file RBXM/FBX atau 1.000 ID berbeda).</p>
+    <h1>Bulk Animation Upload Dashboard</h1>
+    <p class="sub">Batch uploader animasi Roblox dengan antrean 10 pekerja simultan (hingga 1.000 file RBXM/RBMX milik sendiri atau berlisensi).</p>
   </div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <div id="railwayPill" class="pill-badge">
@@ -572,7 +572,7 @@ button:disabled {
   <div class="railway-info">
     <span class="railway-status-tag" id="railwayStatusTag">Status</span>
     <div class="railway-details">
-      <div><strong>Target Akun Roblox:</strong> <span id="railwayTargetText">Memuat target...</span></div>
+      <div><strong>Target Grup Roblox:</strong> <span id="railwayTargetText">Memuat target...</span></div>
       <div id="railwaySubText" style="font-size:12px;color:var(--muted)">Pemeriksaan koneksi otomatis ke Roblox Open Cloud.</div>
     </div>
   </div>
@@ -585,13 +585,13 @@ button:disabled {
 <!-- Creator Override Box (collapsible) -->
 <div id="creatorOverrideBox" class="panel" style="display:none;margin-bottom:18px;border-color:var(--blue)">
   <h2>Atur Target Creator (Override)</h2>
-  <p class="sub">Tentukan User ID atau Group ID tempat animasi akan diunggah / dispoof.</p>
+  <p class="sub">Tentukan Group ID tempat animasi milik sendiri atau berlisensi akan diunggah.</p>
   <div class="grid" style="margin-top:10px">
     <div>
       <label for="overrideType">Tipe Creator</label>
       <select id="overrideType">
         <option value="env">Gunakan Railway / .env (Default)</option>
-        <option value="user">User ID (Akun Pribadi)</option>
+        <option value="user">User ID (Akun Pribadi — opsional)</option>
         <option value="group">Group ID (Grup Roblox)</option>
       </select>
     </div>
@@ -609,22 +609,22 @@ button:disabled {
 
 <!-- Tabs Navigation -->
 <div class="nav-tabs">
-  <button class="nav-tab active" data-tab="tab-id-spoof">🎯 Bulk Spoof by ID (Bisa Ratusan ID Berbeda)</button>
+  <button class="nav-tab active" data-tab="tab-id-spoof">🎯 Referensi Asset ID</button>
   <button class="nav-tab" data-tab="tab-upload">⚡ Bulk Upload File (10 Pekerja)</button>
-  <button class="nav-tab" data-tab="tab-spoof">🔄 RBXM Patcher / Spoof Replacer</button>
+  <button class="nav-tab" data-tab="tab-spoof">🔄 RBXM ID Reference Editor</button>
   <button class="nav-tab" data-tab="tab-scanner">🔍 Pindai RBXM & Vault ID</button>
 </div>
 
 <!-- TAB 1: Direct ID Bulk Spoofing -->
 <div id="tab-id-spoof" class="tab-content">
   <section class="panel wide">
-    <h2>🎯 Bulk Spoof Animasi dari ID Berbeda-beda (Tanpa Perlu File Fisik)</h2>
+    <h2>🎯 Referensi Asset ID — Tidak Mengunggah Ulang</h2>
     <p class="sub">
-      <strong>Apakah bisa untuk ID beda-beda? YA, BISA!</strong> Anda dapat memasukkan ratusan hingga 1.000 ID animasi Roblox mana saja yang berbeda-beda. Server akan secara otomatis <strong>mengunduh aset biner animasi dari Roblox CDN</strong> lalu <strong>mengunggah ulang (spoof) ke akun Anda</strong> menggunakan 10 slot pekerja paralel!
+      Masukkan ID untuk dokumentasi atau pemetaan referensi saja. Dashboard tidak mengunduh atau mengunggah ulang aset berdasarkan ID. Untuk publikasi, gunakan file animasi .rbxm/.rbxmx yang Anda miliki atau berlisensi di tab Bulk Upload File.
     </p>
 
     <label for="bulkIdInput" style="margin-top:14px">
-      Masukkan Daftar Asset ID Animasi (pisahkan dengan koma, spasi, atau baris baru — mendukung format angka atau rbxassetid://...):
+      Daftar Asset ID referensi (tidak akan diunggah ulang):
     </label>
     <textarea id="bulkIdInput" style="font-family:monospace;min-height:120px" placeholder="Contoh:
 507771019
@@ -632,18 +632,18 @@ button:disabled {
 180435571
 rbxassetid://507777826
 9876543210
-...bisa masukkan hingga 1.000 ID berbeda sekaligus!"></textarea>
+ID referensi saja"></textarea>
 
     <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
-      <span style="font-size:12.5px;color:var(--muted)">Terdeteksi: <strong id="detectedIdCount" style="color:var(--blue)">0</strong> ID unik siap dispoof.</span>
+      <span style="font-size:12.5px;color:var(--muted)">Terdeteksi: <strong id="detectedIdCount" style="color:var(--blue)">0</strong> ID referensi.</span>
       <button class="secondary mini" id="btnPasteSampleIds">Coba Contoh 3 ID</button>
       <button class="secondary mini" id="btnClearIdInput">Kosongkan Input</button>
     </div>
 
     <div class="actions" style="margin-top:14px">
-      <button id="btnStartIdSpoof" class="success">🚀 Mulai Bulk Spoof ID Ini (Antrean 10 Worker)</button>
-      <button class="secondary" id="btnExportSpoofedLua">📜 Export Lua Mapping Table</button>
-      <button class="secondary" id="btnExportSpoofedCsv">📊 Export CSV Hasil Spoof</button>
+      <button id="btnStartIdSpoof" class="success">Simpan ID Referensi</button>
+      <button class="secondary" id="btnExportSpoofedLua">📜 Export Referensi Lua</button>
+      <button class="secondary" id="btnExportSpoofedCsv">📊 Export CSV Referensi</button>
     </div>
     <div id="idSpoofMessage" class="message"></div>
   </section>
@@ -655,7 +655,7 @@ rbxassetid://507777826
     <div class="queue-top">
       <div>
         <h2>Antrean Bulk Upload File</h2>
-        <div class="muted">Pilih hingga 1.000 file (.rbxm, .rbxmx, .fbx). Slot upload berjalan dengan 10 pekerja sekaligus.</div>
+        <div class="muted">Pilih hingga 1.000 file animasi (.rbxm, .rbxmx). Upload berjalan dengan maksimal 10 pekerja sekaligus.</div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div class="worker-badge">
@@ -673,8 +673,8 @@ rbxassetid://507777826
       </div>
     </div>
 
-    <label for="bulkFiles" style="margin-top:14px">Pilih file animasi (.rbxm, .rbxmx, .fbx) — Mendukung hingga 1.000 file sekaligus</label>
-    <input id="bulkFiles" type="file" accept=".fbx,.rbxm,.rbxmx" multiple>
+    <label for="bulkFiles" style="margin-top:14px">Pilih file animasi (.rbxm, .rbxmx) — hingga 1.000 file per batch</label>
+    <input id="bulkFiles" type="file" accept=".rbxm,.rbxmx" multiple>
 
     <div class="grid" style="margin-top:8px">
       <div>
@@ -715,7 +715,7 @@ rbxassetid://507777826
     </div>
     <div class="stat">
       <strong id="statSuccess">0</strong>
-      <span>Berhasil Dispoof</span>
+      <span>Berhasil Diunggah</span>
     </div>
     <div class="stat">
       <strong id="statWaiting">0</strong>
@@ -1017,7 +1017,7 @@ ROBLOX_GROUP_ID=9876543</div>
 
   $('queueSearch').addEventListener('input', () => renderQueue());
 
-  // Direct ID Bulk Spoofing Logic
+  // Asset ID Reference List Logic
   function parseIdsFromText(text) {
     if (!text) return [];
     const matches = text.match(/\d{5,20}/g) || [];
@@ -1042,46 +1042,15 @@ ROBLOX_GROUP_ID=9876543</div>
 
   $('btnStartIdSpoof').addEventListener('click', () => {
     const ids = parseIdsFromText($('bulkIdInput').value);
-    if (!ids.length) {
-      return setMessage('idSpoofMessage', 'Masukkan minimal satu ID animasi Roblox yang valid di kolom teks.', 'bad');
-    }
-    if (ids.length > MAX_FILES) {
-      return setMessage('idSpoofMessage', `Maksimal ${MAX_FILES} ID per batch. Terdeteksi ${ids.length} ID.`, 'bad');
-    }
-
+    if (!ids.length) return setMessage('idSpoofMessage', 'Masukkan minimal satu ID referensi yang valid.', 'bad');
+    if (ids.length > MAX_FILES) return setMessage('idSpoofMessage', `Maksimal ${MAX_FILES} ID referensi per batch.`, 'bad');
     let added = 0;
     for (const id of ids) {
-      const key = `id_spoof_${id}`;
-      const existing = jobs.find(j => j.key === key);
-      if (existing) {
-        if (['queued', 'failed', 'uncertain'].includes(existing.status)) {
-          existing.status = 'queued';
-          existing.progress = 0;
-          existing.error = '';
-        }
-        continue;
-      }
-      jobs.push({
-        key,
-        type: 'id_spoof',
-        name: `Anim_${id}`,
-        oldAssetId: id,
-        size: 0,
-        status: 'queued',
-        progress: 0,
-        assetId: '',
-        operationId: '',
-        error: '',
-        createdAt: new Date().toISOString()
-      });
-      added++;
+      if (!animationIds.includes(id)) { animationIds.unshift(id); added++; }
     }
-
-    persistRender();
-    paused = false;
-    running = true;
-    setMessage('idSpoofMessage', `🚀 ${added} ID animasi berbeda dimasukkan ke antrean! 10 Pekerja sedang mengunduh dari Roblox CDN dan mengunggah ulang ke akun Anda...`, 'good');
-    pump();
+    save();
+    renderIds();
+    setMessage('idSpoofMessage', `${added} ID disimpan sebagai referensi saja. Tidak ada aset yang diunduh atau diunggah ulang. Gunakan file .rbxm/.rbxmx milik sendiri atau berlisensi untuk publikasi.`, 'good');
   });
 
   // Animation ID Vault Logic
@@ -1182,7 +1151,7 @@ ROBLOX_GROUP_ID=9876543</div>
 
       if (data.ids.length > 0) {
         $('btnSendAllScanToSpoof').style.display = 'inline-flex';
-        $('btnSendAllScanToSpoof').textContent = `🚀 Kirim ${data.ids.length} ID ke Bulk Spoofer`;
+        $('btnSendAllScanToSpoof').textContent = `Simpan ${data.ids.length} ID Referensi`;
       }
 
       setMessage('scanMessage', `Selesai! Ditemukan ${data.count} ID unik di "${data.filename}".`, 'good');
@@ -1211,7 +1180,7 @@ ROBLOX_GROUP_ID=9876543</div>
       queued: 'Menunggu',
       uploading: 'Memproses (10 Slot)',
       processing: 'Roblox Processing',
-      success: 'Berhasil Dispoof',
+      success: 'Berhasil Diunggah',
       failed: 'Gagal',
       uncertain: 'Perlu Cek'
     })[status] || status;
@@ -1351,7 +1320,7 @@ ROBLOX_GROUP_ID=9876543</div>
     let added = 0, skipped = 0;
     for (const file of files) {
       const ext = file.name.split('.').pop().toLowerCase();
-      if (!['fbx', 'rbxm', 'rbxmx'].includes(ext)) {
+      if (!['rbxm', 'rbxmx'].includes(ext)) {
         skipped++;
         continue;
       }
@@ -1447,7 +1416,7 @@ ROBLOX_GROUP_ID=9876543</div>
     });
   }
 
-  // Direct ID Spoofing Call
+  // Asset ID reference only
   async function fetchSpoofById(job) {
     job.progress = 25;
     renderQueue();
