@@ -1,7 +1,7 @@
 {
   "name": "bulk-animation-dasboard",
   "version": "1.0.0",
-  "description": "Bulk Roblox animation upload dashboard with a five-worker queue",
+  "description": "Sakurayama Studio — Roblox animation bulk uploader with 1,000-item queue, 10 workers, asset inspection, and Railway diagnostics.",
   "main": "server.js",
   "scripts": {
     "build": "node -e \"console.log('Build complete')\"",
@@ -9,6 +9,11 @@
     "lint": "node --check server.js",
     "start": "node server.js"
   },
-  "engines": { "node": ">=20" },
-  "dependencies": { "express": "^5.3.0", "multer": "^2.4.0" }
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "multer": "^2.4.0"
+  }
 }
