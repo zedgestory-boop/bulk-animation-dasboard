@@ -18,7 +18,7 @@ Roblox Open Cloud Assets API menerima animasi dalam format **.rbxm** dan **.rbxm
 
 ## Variabel Railway
 
-Tambahkan melalui **Railway → service → Variables**:
+Tambahkan melalui **Railway → service → Variables**. Dashboard menolak akses jika password ini belum disetel:
 
 | Variable | Nilai |
 |---|---|
