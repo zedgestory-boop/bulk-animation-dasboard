@@ -371,32 +371,46 @@ app.post('/api/replace-rbxm-ids', (req, res) => {
       return res.status(400).json({ error: 'Maksimal 1.000 pasangan ID per proses.' });
     }
 
-    const filename = path.basename(req.file.originalname || 'animation.rbxm').replace(/["\\\\]/g, '_');
+    const filename = path.basename(req.file.originalname || 'animation.rbxm').replace(/["\\]/g, '_');
     const ext = path.extname(filename).toLowerCase();
-    if (!['.rbxm', '.rbxmx'].includes(ext)) {
-      return res.status(400).json({ error: 'Hanya file .rbxm dan .rbxmx yang didukung.' });
+    const isTextConfig = ['.lua', '.txt'].includes(ext);
+    if (!['.rbxm', '.rbxmx', '.lua', '.txt'].includes(ext)) {
+      return res.status(400).json({ error: 'Format yang didukung: .rbxm, .rbxmx, .lua, atau .txt.' });
     }
 
-    let content = req.file.buffer.toString('latin1');
+    // RBXM/RBXMX are treated as binary and only explicit rbxassetid:// references
+    // are replaced. Lua/TXT configs are UTF-8 text and may contain bare numeric IDs.
+    let content = req.file.buffer.toString(isTextConfig ? 'utf8' : 'latin1');
     let replacedCount = 0;
 
     for (const [oldId, newId] of Object.entries(idMap)) {
       const cleanOld = String(oldId).replace(/^rbxassetid:\/\//i, '').trim();
       const cleanNew = String(newId).replace(/^rbxassetid:\/\//i, '').trim();
-      if (!/^\\d{5,20}$/.test(cleanOld) || !/^\\d{5,20}$/.test(cleanNew)) {
+      if (!/^\d{5,20}$/.test(cleanOld) || !/^\d{5,20}$/.test(cleanNew)) {
         return res.status(400).json({ error: 'Setiap ID lama dan baru harus berupa Asset ID Roblox numerik 5–20 digit.' });
       }
-      const pattern = new RegExp(`rbxassetid://${cleanOld}(?!\\d)`, 'g');
-      const matches = content.match(pattern);
-      if (matches) {
-        replacedCount += matches.length;
-        content = content.replace(pattern, `rbxassetid://${cleanNew}`);
+
+      const uriPattern = new RegExp('rbxassetid://' + cleanOld + '(?!\\d)', 'g');
+      const uriMatches = content.match(uriPattern);
+      if (uriMatches) {
+        replacedCount += uriMatches.length;
+        content = content.replace(uriPattern, 'rbxassetid://' + cleanNew);
+      }
+
+      if (isTextConfig) {
+        // Also replace bare IDs in Lua tables such as { "DANCE NAME", 119311874202971 }.
+        const bareIdPattern = new RegExp('(?<!\\d)' + cleanOld + '(?!\\d)', 'g');
+        const bareMatches = content.match(bareIdPattern);
+        if (bareMatches) {
+          replacedCount += bareMatches.length;
+          content = content.replace(bareIdPattern, cleanNew);
+        }
       }
     }
 
-    const outputBuffer = Buffer.from(content, 'latin1');
-    res.setHeader('Content-Disposition', `attachment; filename="patched_${filename}"`);
-    res.setHeader('Content-Type', ext === '.rbxmx' ? 'application/xml' : 'application/octet-stream');
+    const outputBuffer = Buffer.from(content, isTextConfig ? 'utf8' : 'latin1');
+    res.setHeader('Content-Disposition', 'attachment; filename="patched_' + filename + '"');
+    res.setHeader('Content-Type', ext === '.rbxmx' ? 'application/xml' : (isTextConfig ? 'text/plain; charset=utf-8' : 'application/octet-stream'));
     res.setHeader('X-Replaced-Count', String(replacedCount));
     return res.send(outputBuffer);
   });
