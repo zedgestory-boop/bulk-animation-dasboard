@@ -661,14 +661,7 @@ ID referensi saja"></textarea>
         <div class="worker-badge">
           Pekerja Aktif: <span id="statActive">0 / 10</span>
         </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <label for="concurrencySelect" style="margin:0;font-size:12px">Slot:</label>
-          <select id="concurrencySelect" style="width:auto;padding:5px 8px;font-size:12px">
-            <option value="5">5 Pekerja</option>
-            <option value="10" selected>10 Pekerja (Rekomendasi)</option>
-            
-          </select>
-        </div>
+        <div class="worker-badge">Batas: 1.000 file · Paralel: 10 file</div>
       </div>
     </div>
 
@@ -998,11 +991,7 @@ ROBLOX_GROUP_ID=9876543</div>
     setMessage('overrideMessage', 'Target dikembalikan ke Railway / .env default.', 'good');
   });
 
-  // Concurrency Selector
-  $('concurrencySelect').addEventListener('change', e => {
-    CONCURRENCY = parseInt(e.target.value, 10) || 10;
-    renderQueue();
-  });
+  // Concurrency is fixed at 10 simultaneous uploads.
 
   // Filter Buttons
   document.querySelectorAll('.file-filter-btn').forEach(btn => {
@@ -1316,7 +1305,7 @@ ROBLOX_GROUP_ID=9876543</div>
       return;
     }
 
-    let added = 0, skipped = 0;
+    let added = 0, skipped = 0, overLimit = 0;
     for (const file of files) {
       const ext = file.name.split('.').pop().toLowerCase();
       if (!['rbxm', 'rbxmx'].includes(ext)) {
@@ -1324,14 +1313,23 @@ ROBLOX_GROUP_ID=9876543</div>
         continue;
       }
       const key = fileKey(file);
-      selectedFiles.set(key, file);
       const existing = jobs.find(j => j.key === key);
       if (existing) {
+        selectedFiles.set(key, file);
         if (['queued', 'failed', 'uncertain'].includes(existing.status)) {
           existing.fileAvailable = true;
         }
         continue;
       }
+
+      // Enforce 1,000 total file jobs in the queue, even across multiple selections.
+      const totalFileJobs = jobs.filter(j => j.type === 'file').length;
+      if (totalFileJobs >= MAX_FILES) {
+        overLimit++;
+        continue;
+      }
+
+      selectedFiles.set(key, file);
       // Extract original ID from filename if present
       const idMatch = file.name.match(/\d{5,20}/);
       jobs.push({
@@ -1353,7 +1351,11 @@ ROBLOX_GROUP_ID=9876543</div>
     }
 
     persistRender();
-    setMessage('queueMessage', `Berhasil menambahkan ${added} file ke antrean.${skipped ? ` (${skipped} file format tidak didukung dilewati).` : ''} Klik "Mulai Antrean File".`, 'good');
+    if (overLimit) {
+      setMessage('queueMessage', `Ditambahkan ${added} file. ${overLimit} file tidak ditambahkan karena batas total antrean adalah ${MAX_FILES} file. Hapus antrean lama untuk menambahkan file lain.${skipped ? ` ${skipped} file berformat tidak didukung juga dilewati.` : ''}`, 'bad');
+    } else {
+      setMessage('queueMessage', `Berhasil menambahkan ${added} file ke antrean.${skipped ? ` (${skipped} file format tidak didukung dilewati).` : ''} Maksimal ${MAX_FILES} file total, dengan 10 upload berjalan bersamaan.`, 'good');
+    }
   });
 
   // XHR Upload Worker for Files
