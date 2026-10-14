@@ -929,14 +929,14 @@ ROBLOX_GROUP_ID=9876543</div>
 
       if (data.hasApiKey) {
         dot.className = 'dot online';
-        pillText.textContent = 'Railway: API Key Terhubung';
-        statusTag.className = 'railwayStatusTag ok';
+        pillText.textContent = 'Backend Aktif · API Key Tersedia';
+        statusTag.className = 'railway-status-tag ok';
         statusTag.textContent = 'Siap Digunakan';
-        subText.textContent = `API Key: ${data.apiKeyMasked} · Mode: 10 Pekerja Antrean Simultan`;
+        subText.textContent = `API Key terdeteksi: ${data.apiKeyMasked}. Validitas key baru diuji saat operasi upload resmi.`;
       } else {
         dot.className = 'dot';
         pillText.textContent = 'Railway: Menunggu API Key';
-        statusTag.className = 'railwayStatusTag warn';
+        statusTag.className = 'railway-status-tag warn';
         statusTag.textContent = 'Perlu Setup';
         subText.textContent = 'Tambahkan ROBLOX_API_KEY di Railway Variables (.env) untuk mulai upload ke Roblox.';
       }
