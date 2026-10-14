@@ -9,7 +9,8 @@ const app = express();
 const PRIMARY_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 const MAX_SCAN_SIZE = 200 * 1024 * 1024; // 200 MiB, scan only
 const MAX_UPLOAD_SIZE = 20 * 1024 * 1024; // 20 MiB per Roblox upload
-const MAX_BATCH_FILES = 1000;\nconst ROBLOX_REQUEST_TIMEOUT_MS = 30000;
+const MAX_BATCH_FILES = 1000;
+const ROBLOX_REQUEST_TIMEOUT_MS = 30000;
 const ROBLOX_API = 'https://apis.roblox.com/assets/v1';
 
 app.disable('x-powered-by');
