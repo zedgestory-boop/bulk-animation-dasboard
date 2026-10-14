@@ -26,10 +26,10 @@ function safeEqual(a, b) {
 app.use((req, res, next) => {
   if (req.path === '/health' || req.path === '/api/config-status') return next();
 
-  const configuredPassword = process.env.DASHBOARD_PASSWORD;
-  // If no password is set in environment (e.g. initial setup or preview), allow access so user can configure variables
+  const configuredPassword = String(process.env.DASHBOARD_PASSWORD || '').trim();
+  // Fail closed in production: never expose dashboard or upload endpoints without a password.
   if (!configuredPassword) {
-    return next();
+    return res.status(503).send('Dashboard belum dikunci. Tambahkan DASHBOARD_PASSWORD di Railway Variables, lalu redeploy.');
   }
 
   const header = req.headers.authorization || '';
