@@ -392,7 +392,7 @@ app.get('/api/asset/:assetId/moderation', async (req, res) => {
   const apiKey = process.env.ROBLOX_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'ROBLOX_API_KEY belum diatur di Railway Variables.' });
   const assetId = String(req.params.assetId || '');
-  if (!/^\\d+$/.test(assetId)) return res.status(400).json({ error: 'Asset ID tidak valid.' });
+  if (!/^\d+$/.test(assetId)) return res.status(400).json({ error: 'Asset ID tidak valid.' });
   try {
     const moderationState = await resolveModerationState({}, assetId, apiKey);
     return res.json({ status: 'success', assetId, moderationState });
