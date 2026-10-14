@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const zlib = require('zlib');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PRIMARY_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 const MAX_SCAN_SIZE = 200 * 1024 * 1024; // 200 MiB, scan only
 const MAX_UPLOAD_SIZE = 20 * 1024 * 1024; // 20 MiB per Roblox upload
 const MAX_BATCH_FILES = 1000;
@@ -434,4 +434,12 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Terjadi kesalahan server.' });
 });
 
-app.listen(PORT, '0.0.0.0', () => console.log(`Bulk Animation Dashboard berjalan di port ${PORT}`));
+const PORTS = [...new Set([PRIMARY_PORT, 8080, 3000])];
+
+PORTS.forEach(p => {
+  try {
+    app.listen(p, '0.0.0.0', () => console.log(`Bulk Animation Dashboard berjalan di port ${p}`));
+  } catch (err) {
+    console.warn(`Gagal bind ke port ${p}:`, err.message);
+  }
+});
