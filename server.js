@@ -178,7 +178,7 @@ function getCreator(overrideType, overrideId) {
   // An explicit target must be complete and valid. Never silently fall back
   // to the Railway default when a user selected personal/group ownership.
   if (oType === 'group' || oType === 'user') {
-    if (!/^\\d{1,20}$/.test(oId)) {
+    if (!/^\d{1,20}$/.test(oId)) {
       throw new Error(oType === 'user'
         ? 'Masukkan User ID numerik akun pribadi yang valid.'
         : 'Masukkan Group ID numerik grup Roblox yang valid.');
@@ -193,8 +193,8 @@ function getCreator(overrideType, overrideId) {
 
   const groupId = String(process.env.ROBLOX_GROUP_ID || '').trim();
   const userId = String(process.env.ROBLOX_USER_ID || '').trim();
-  if (groupId && /^\\d{1,20}$/.test(groupId)) return { creator: { groupId } };
-  if (userId && /^\\d{1,20}$/.test(userId)) return { creator: { userId } };
+  if (groupId && /^\d{1,20}$/.test(groupId)) return { creator: { groupId } };
+  if (userId && /^\d{1,20}$/.test(userId)) return { creator: { userId } };
   if (groupId || userId) {
     throw new Error('ROBLOX_GROUP_ID atau ROBLOX_USER_ID harus berisi ID numerik yang valid.');
   }
