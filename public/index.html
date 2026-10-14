@@ -1445,6 +1445,23 @@ ROBLOX_GROUP_ID=9876543</div>
     return { data, status: res.status };
   }
 
+  async function checkAssetModeration(job) {
+    if (!job.assetId || (job.error && !job.error.includes('Unknown'))) return;
+    for (let i = 0; i < 6; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      try {
+        const response = await fetch(`/api/asset/${encodeURIComponent(job.assetId)}/moderation`);
+        const data = await response.json();
+        if (!response.ok) continue;
+        if (data.moderationState && data.moderationState !== 'Unknown') {
+          job.error = `Moderasi: ${data.moderationState}`;
+          persistRender();
+          return;
+        }
+      } catch (_) {}
+    }
+  }
+
   async function checkOperation(job) {
     if (!job.operationId) return;
     for (let i = 0; i < 90; i++) {
@@ -1468,6 +1485,7 @@ ROBLOX_GROUP_ID=9876543</div>
             renderIds();
           }
           persistRender();
+          if (job.assetId && job.error.includes('Unknown')) checkAssetModeration(job);
           return;
         }
         job.status = 'failed';
@@ -1526,6 +1544,7 @@ ROBLOX_GROUP_ID=9876543</div>
           animationIds.unshift(job.assetId);
           renderIds();
         }
+        if (job.assetId && job.error.includes('Unknown')) checkAssetModeration(job);
       } else if (status === 202 || data.status === 'processing') {
         job.status = 'processing';
         job.progress = 95;
