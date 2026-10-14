@@ -666,8 +666,7 @@ ID referensi saja"></textarea>
           <select id="concurrencySelect" style="width:auto;padding:5px 8px;font-size:12px">
             <option value="5">5 Pekerja</option>
             <option value="10" selected>10 Pekerja (Rekomendasi)</option>
-            <option value="15">15 Pekerja</option>
-            <option value="20">20 Pekerja</option>
+            
           </select>
         </div>
       </div>
@@ -863,7 +862,7 @@ ROBLOX_GROUP_ID=9876543</div>
   };
 
   let animationIds = safeJson('bulkAnimationIds_v4', []);
-  let jobs = safeJson('bulkAnimationJobs_v4', []);
+  let jobs = safeJson('bulkAnimationJobs_v4', []).filter(j => j.type !== 'id_spoof');
   let selectedFiles = new Map();
   let currentFilter = 'all';
   let running = false, paused = false, activeCount = 0, pumpRunning = false;
@@ -1032,7 +1031,7 @@ ROBLOX_GROUP_ID=9876543</div>
   $('btnPasteSampleIds').addEventListener('click', () => {
     $('bulkIdInput').value = '507771019\n105442430110414\n180435571';
     $('detectedIdCount').textContent = 3;
-    setMessage('idSpoofMessage', '3 contoh ID animasi Roblox dimasukkan. Klik "Mulai Bulk Spoof ID Ini"!', 'good');
+    setMessage('idSpoofMessage', '3 contoh ID animasi Roblox dimasukkan. Klik "Simpan ID Referensi"!', 'good');
   });
 
   $('btnClearIdInput').addEventListener('click', () => {
@@ -1178,7 +1177,7 @@ ROBLOX_GROUP_ID=9876543</div>
   function statusLabel(status) {
     return ({
       queued: 'Menunggu',
-      uploading: 'Memproses (10 Slot)',
+      uploading: 'Mengunggah',
       processing: 'Roblox Processing',
       success: 'Berhasil Diunggah',
       failed: 'Gagal',
