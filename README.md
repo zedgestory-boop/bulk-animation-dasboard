@@ -1,4 +1,4 @@
-# Bulk Roblox Animation Upload Dashboard
+# Sakurayama Studio — Bulk Roblox Animation
 
 Dashboard untuk mengunggah batch animasi ke akun/grup Roblox menggunakan Roblox Open Cloud Assets API. Gunakan hanya file yang Anda buat sendiri atau yang memang Anda punya izin untuk menerbitkan.
 
@@ -60,3 +60,16 @@ Lalu buka `http://localhost:8080` (atau port yang ditentukan oleh `PORT`).
 - Jangan otomatis mengulang item berstatus `uncertain` sebelum memeriksa Creator Dashboard, karena permintaan mungkin sudah diterima Roblox.
 - Endpoint `/api/spoof-by-id` dinonaktifkan. Asset ID referensi tidak dipakai untuk mengunduh atau memindahkan aset antar-creator.
 - Assets API Roblox masih memiliki endpoint beta dan perilakunya dapat berubah. Dokumentasi: https://create.roblox.com/docs/cloud/guides/usage-assets
+
+
+## Deployment troubleshooting
+
+After pushing a change, open Railway → project → backend service → Deployments and confirm the latest deployment is **SUCCESS**. The dashboard serves its static frontend from `public/`.
+
+- Health check: `/health`
+- Build/version diagnostics: `/api/version`
+- Asset moderation lookup: `/api/asset/<ASSET_ID>/moderation`
+
+If the moderation endpoint returns `Cannot GET`, the deployed service is running an older commit or the public domain is mapped to another service. Check `/api/version` first. Never share `ROBLOX_API_KEY` in screenshots or logs.
+
+A moderation value of `Unknown` means the current Roblox API responses did not provide a recognized moderation state. It does not mean the asset upload itself failed. Use only assets you own or are authorized to publish.
