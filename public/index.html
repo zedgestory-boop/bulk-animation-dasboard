@@ -747,18 +747,18 @@ ID referensi saja"></textarea>
 <div id="tab-spoof" class="tab-content" style="display:none;margin-top:18px">
   <div class="grid">
     <section class="panel wide">
-      <h2>🔄 RBXM / RBXMX Animation ID Patcher & Replacer</h2>
-      <p class="sub">Ganti ID animasi lama di dalam file model / rig RBXM dengan ID baru yang telah dispoof, lalu download file hasil yang siap dipakai di game Anda.</p>
+      <h2>🔄 RBXM / RBXMX / Lua Animation ID Replacer</h2>
+      <p class="sub">Ganti referensi ID pada file RBXM/RBXMX atau tabel konfigurasi Lua/TXT. Untuk Lua/TXT, ID numerik biasa juga didukung. Unduh file hasil dan periksa sebelum dipakai.</p>
 
       <div class="grid" style="margin-top:14px">
         <div>
-          <label for="patchFile">File RBXM / RBXMX yang ingin dipatch:</label>
-          <input id="patchFile" type="file" accept=".rbxm,.rbxmx">
+          <label for="patchFile">File RBXM / RBXMX / Lua / TXT yang ingin diperbarui:</label>
+          <input id="patchFile" type="file" accept=".rbxm,.rbxmx,.lua,.txt">
         </div>
         <div>
           <label>Sumber Pemetaan ID (Old ID ➔ New ID):</label>
           <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
-            <button class="secondary mini" id="btnAutoPopulateMap">Ambil dari Hasil Spoof Sukses</button>
+            <button class="secondary mini" id="btnAutoPopulateMap">Isi dari Hasil Upload</button>
             <button class="secondary mini" id="btnClearMap">Kosongkan Pemetaan</button>
           </div>
         </div>
@@ -771,7 +771,7 @@ ID referensi saja"></textarea>
 }'></textarea>
 
       <div class="actions">
-        <button id="btnPatchRbxm" class="success">🚀 Patch & Unduh File RBXM Baru</button>
+        <button id="btnPatchRbxm" class="success">🚀 Ganti ID & Unduh File Hasil</button>
       </div>
       <div id="patchMessage" class="message"></div>
     </section>
