@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bulk Animation Upload Dashboard</title>
-<meta name="description" content="Bulk Roblox animation file uploader with a 10-worker queue, RBXM scanner, and Railway Open Cloud integration.">
-<meta property="og:title" content="Bulk Animation Upload Dashboard">
-<meta property="og:description" content="Bulk Roblox animation file uploader with a 10-worker queue, RBXM scanner, and Railway Open Cloud integration.">
+<title>Sakurayama • Bulk Animation Studio</title>
+<meta name="description" content="Sakurayama Bulk Animation Studio — upload, inspect and manage Roblox animation assets with a 10-worker queue.">
+<meta property="og:title" content="Sakurayama • Bulk Animation Studio">
+<meta property="og:description" content="Upload, inspect and manage Roblox animation assets in a polished workspace.">
 <style>
 :root {
   color-scheme: dark;
@@ -548,6 +548,79 @@ button:disabled {
   .file-row { grid-template-columns: minmax(0, 1fr); }
   header { align-items: flex-start; }
 }
+ 
+/* Sakurayama Studio refresh — premium responsive interface */
+:root {
+  --bg:#080812; --panel:#121321; --panel2:#19192b; --line:#2b2a43; --line-light:#484466;
+  --text:#f8f6ff; --muted:#aaa6c2; --blue:#a78bfa; --blue-hover:#c4b5fd;
+  --cyan:#67e8f9; --green:#6ee7b7; --green-bg:#10372f; --red:#fb7185; --red-bg:#421d2b;
+  --yellow:#fcd34d; --yellow-bg:#3d3016; --purple:#c084fc;
+}
+body {
+  background:
+    radial-gradient(ellipse at 10% 0%, rgba(124,58,237,.22), transparent 36%),
+    radial-gradient(ellipse at 95% 8%, rgba(236,72,153,.13), transparent 30%),
+    linear-gradient(145deg,#080812 0%,#0d0c1a 55%,#090a13 100%);
+  background-attachment: fixed;
+  letter-spacing:.005em;
+}
+.wrap {max-width:1440px;padding:30px clamp(14px,3vw,38px) 72px}
+header {padding:0 0 22px;border-bottom-color:rgba(167,139,250,.22);margin-bottom:24px}
+.header-titles h1 {
+  font-size:clamp(25px,3vw,38px);letter-spacing:-.045em;
+  background:linear-gradient(100deg,#fff 5%,#d8b4fe 48%,#f9a8d4 95%);
+  -webkit-background-clip:text;background-clip:text;
+}
+.header-titles h1::before {content:"✦ ";font-size:.72em;color:#e9a8ff}
+.sub {font-size:13px;letter-spacing:.01em}
+.pill-badge,.railway-bar,.panel,.stat,.file-row,.modal-card {
+  box-shadow:0 18px 50px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.025);
+}
+.pill-badge {background:rgba(20,18,38,.82);border-color:#37314f}
+.railway-bar {background:linear-gradient(120deg,rgba(30,24,54,.96),rgba(17,17,31,.96));border-color:#3b3157;border-radius:18px}
+.panel {background:linear-gradient(145deg,rgba(25,23,43,.96),rgba(15,15,27,.97));border-color:rgba(151,132,198,.2);border-radius:19px;padding:clamp(16px,2vw,24px)}
+.grid {gap:18px}
+.nav-tabs {border:0;gap:9px;margin:4px 0 20px;padding:7px;background:rgba(17,15,30,.72);border:1px solid rgba(151,132,198,.18);border-radius:15px}
+.nav-tab {border-radius:10px;padding:10px 15px;color:#bcb6d5}
+.nav-tab:hover {background:rgba(167,139,250,.1)}
+.nav-tab.active {background:linear-gradient(115deg,rgba(139,92,246,.28),rgba(236,72,153,.12));border-color:rgba(196,181,253,.42);box-shadow:inset 0 1px rgba(255,255,255,.06);color:#fff}
+button {border-radius:10px;background:linear-gradient(115deg,#c4b5fd,#a78bfa);color:#171026;box-shadow:0 5px 16px rgba(139,92,246,.12)}
+button:hover:not(:disabled) {background:linear-gradient(115deg,#ddd6fe,#c4b5fd);transform:translateY(-1px)}
+button.secondary {background:#211e35;color:#e7e1ff;border-color:#40395e;box-shadow:none}
+button.secondary:hover:not(:disabled) {background:#2b2645}
+button.success {background:linear-gradient(110deg,#6ee7b7,#34d399)}
+button.danger {background:#391d2b;border-color:#693249}
+input[type=text],input[type=search],input[type=number],textarea,select {background:#0d0c18;border-color:#35304c;border-radius:11px}
+input[type=file] {background:rgba(13,12,24,.75);border-color:#4c416d;border-radius:14px}
+input:focus,textarea:focus,select:focus {border-color:#c4b5fd;box-shadow:0 0 0 3px rgba(167,139,250,.12)}
+.stat {background:linear-gradient(145deg,rgba(29,25,49,.9),rgba(15,15,27,.92));border-color:rgba(151,132,198,.2);border-radius:15px;padding:15px 16px}
+.stat strong {font-size:clamp(22px,2.3vw,29px);letter-spacing:-.04em}
+.stat span {letter-spacing:.04em;text-transform:uppercase;font-size:10px;font-weight:700}
+.file-row {background:rgba(15,15,28,.86);border-color:#2c2941;border-radius:13px}
+.file-row:hover {border-color:#8b5cf6;box-shadow:0 6px 20px rgba(124,58,237,.08)}
+.asset-id-chip {background:#112d29;color:#7df4d0;border-color:#1f6255}
+.status {letter-spacing:.015em}
+.overall {background:#090811;border-color:#2e2942}
+.overall>div {background:linear-gradient(90deg,#a78bfa,#ec4899,#67e8f9)}
+.row-progress div {background:linear-gradient(90deg,#a78bfa,#ec4899)}
+.worker-badge {background:#241d3b;border-color:#4b3c71;color:#e3d4ff}
+.badge-tag {background:#251d3b;border-color:#49386e;color:#d8b4fe}
+.code-box {background:#090811;border-color:#302943}
+.modal-card {background:#141222;border-color:#4a3a68}
+a {color:#c4b5fd}
+* {scrollbar-color:#40365e #100e1a}
+button:focus-visible,[role=button]:focus-visible {outline:2px solid #f0abfc;outline-offset:3px}
+@media(max-width:780px) {
+ .wrap {padding-top:18px}
+ .nav-tabs {overflow-x:auto;flex-wrap:nowrap}
+ .nav-tab {white-space:nowrap}
+ .railway-bar {align-items:flex-start}
+ .panel {padding:16px}
+}
+@media(prefers-reduced-motion:reduce) {
+ *,*::before,*::after {scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -555,8 +628,8 @@ button:disabled {
 
 <header>
   <div class="header-titles">
-    <h1>Bulk Animation Upload Dashboard</h1>
-    <p class="sub">Batch uploader animasi Roblox dengan antrean 10 pekerja simultan (hingga 1.000 file RBXM/RBMX milik sendiri atau berlisensi).</p>
+    <h1>Sakurayama Studio</h1>
+    <p class="sub">Workspace publikasi animasi Roblox • antrean 10 worker • hingga 1.000 file per batch.</p>
   </div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <div id="railwayPill" class="pill-badge">
