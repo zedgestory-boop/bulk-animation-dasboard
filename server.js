@@ -51,6 +51,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.get('/api/version', (_req, res) => res.json({ service: 'sakurayama-bulk-animation-studio', moderationLookup: true, assetModerationEndpoint: true, timestamp: new Date().toISOString() }));
 
 app.get('/api/config-status', (_req, res) => {
   const hasApiKey = Boolean(process.env.ROBLOX_API_KEY && process.env.ROBLOX_API_KEY.trim());
