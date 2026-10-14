@@ -1,0 +1,8 @@
+{
+  "name": "bulk-animation-dashboard",
+  "description": "Bulk Roblox animation spoofer and uploader with 10-worker queue, RBXM scanner, and Railway integration",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
